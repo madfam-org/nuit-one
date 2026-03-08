@@ -32,7 +32,7 @@
 | **nuit-one-api** | Hono REST API. Validates JWTs against Janua JWKS endpoint. Manages projects, tracks, stems. Generates R2 presigned URLs for direct browser uploads. |
 | **Janua SSO** | Self-hosted OAuth 2.0 / OpenID Connect provider. Manages user identities, workspace organizations, and role assignments. Publishes JWKS for stateless JWT verification. |
 | **PostgreSQL** | Primary data store. Schema managed by Drizzle ORM with migration files in `packages/db/src/migrations/`. Tables: projects, tracks, stems, performances, calibration_profiles. |
-| **Cloudflare R2** | Object storage for audio stems, WASM binaries, and exported mixes. S3-compatible API. No egress fees. Browser uploads via presigned PUT URLs. |
+| **Cloudflare R2** | Object storage for audio stems, WASM binaries, and exported mixes. S3-compatible API. No egress fees. Browser uploads via presigned PUT URLs. In local dev mode (`STORAGE_MODE=local`), a filesystem adapter stores files under `./storage/` instead. |
 | **Soketi** | Self-hosted Pusher-compatible WebSocket server. Powers real-time collaboration: presence, cursor sync, stem delivery notifications (Phase 3+). |
 | **ONNX Runtime** | Runs AI models (Demucs, Basic Pitch, SongDriver) locally in the browser via WASM or WebGPU backends. No server round-trips during live performance. |
 
@@ -91,6 +91,19 @@ The access token JWT issued by Janua contains:
 | `roles` | Array of workspace roles for the user |
 
 The API middleware (`apps/api/src/middleware/auth.ts`) verifies the JWT signature against the Janua JWKS endpoint, extracts `sub` and `org_id`, and attaches them to the Hono request context as the `auth` variable.
+
+### Dev Auth Bypass
+
+When `NODE_ENV !== 'production'`, both the API and SvelteKit skip JWT/session validation entirely:
+
+- **API**: The `jwtAuth` middleware injects deterministic dev user/workspace UUIDs without requiring a Bearer token.
+- **SvelteKit**: The `auth` hook auto-sets a session cookie and injects the same dev UUIDs into `event.locals`.
+
+Dev UUIDs (consistent across both services):
+- `DEV_USER_ID = '00000000-0000-0000-0000-000000000001'`
+- `DEV_WORKSPACE_ID = '00000000-0000-0000-0000-000000000002'`
+
+These are valid UUID v4 strings, required because the PostgreSQL schema uses `uuid()` column types.
 
 ## Audio Data Flow
 
@@ -181,14 +194,14 @@ The bass karaoke MVP uses server-side AI processing (Demucs, Basic Pitch) rather
 
 ```
 Upload Flow:
-  Browser                  SvelteKit                 R2 / DB
+  Browser                  SvelteKit                 Storage / DB
     |                          |                        |
     |-- POST /api/upload ----->|                        |
     |   {filename, type, size} |-- Create track row --->|
     |                          |-- getUploadUrl() ----->|
     |<-- {trackId, uploadUrl} -|                        |
     |                          |                        |
-    |-- PUT uploadUrl -------->|                   (direct to R2)
+    |-- PUT uploadUrl -------->|  (R2 signed URL or /api/storage/upload)
     |                          |                        |
     |-- POST /api/upload/confirm ->|                    |
     |                          |-- status='uploaded' -->|
@@ -252,4 +265,49 @@ Strict COEP (`require-corp`) blocks cross-origin fetches to R2 signed URLs. The 
 | **ONNX Runtime in browser** | AI inference on the user's device avoids network latency during live performance. Models load once and run at near-native speed via WASM/WebGPU backends. Server-side fallback available for devices without sufficient compute. |
 | **Server-side AI for MVP** | The bass karaoke MVP uses server-side Demucs and Basic Pitch via CLI subprocesses for simplicity. In-browser ONNX inference is planned for Phase 2 to eliminate server round-trips. |
 | **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain control does not need sample-level DSP. The AudioWorklet pipeline is reserved for real-time recording (Phase 1+). |
+| **Dual-mode storage** | A unified storage adapter (`apps/api/src/lib/storage.ts`, `apps/web/src/lib/server/storage.ts`) delegates to local filesystem or Cloudflare R2 based on `STORAGE_MODE` env var. This eliminates the R2 dependency for local development. |
 | **Monorepo with Turborepo** | Shared types (`packages/shared`) prevent API/frontend drift. Single `pnpm install`. Turborepo caches builds across packages. CI runs only affected packages on each push. |
+
+## YouTube Import Flow
+
+The dashboard supports importing songs directly from YouTube URLs. The pipeline downloads audio via `yt-dlp`, then runs the full Demucs + Basic Pitch processing chain.
+
+```
+YouTube Import Flow:
+  Browser                  SvelteKit                  Hono API
+    |                          |                          |
+    |-- POST /api/import/youtube ->|                      |
+    |   {url}                  |-- POST /api/import/youtube ->|
+    |                          |                          |-- yt-dlp download
+    |                          |<-- {jobId} --------------|
+    |<-- {jobId} --------------|                          |
+    |                          |                          |-- create project/track
+    |-- GET /api/process/:id ->|  (poll every 3s)        |-- upload to storage
+    |                          |-- GET /api/stems/jobs/:id ->|-- demucs stem split
+    |<-- {status, progress} ---|<-- job status ------------|-- basic-pitch transcribe
+    |                          |                          |-- mark track ready
+```
+
+Requirements: `yt-dlp` and `ffmpeg` must be on PATH. The setup script installs both via Homebrew.
+
+## Local Development Setup
+
+A one-command setup script provisions the full dev environment:
+
+```bash
+chmod +x scripts/setup-dev.sh && ./scripts/setup-dev.sh
+```
+
+This script:
+1. Installs `ffmpeg` and `yt-dlp` via Homebrew
+2. Creates a Python venv at `.venv/` with `demucs` and `basic-pitch`
+3. Starts PostgreSQL and creates the `nuitone` database
+4. Creates `.env` from `.env.example` with local dev overrides
+5. Runs `pnpm install` and `pnpm db:push` (schema sync)
+
+Key env vars for local dev:
+- `NODE_ENV=development` — enables auth bypass
+- `STORAGE_MODE=local` — uses `./storage/` instead of R2
+- `LOCAL_STORAGE_PATH=./storage` — filesystem storage root
+
+The API dev script (`apps/api/package.json`) prepends `.venv/bin` to PATH so that `demucs` and `basic-pitch` CLI tools are found when spawned as subprocesses.

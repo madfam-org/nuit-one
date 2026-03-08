@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { downloadFromR2, uploadToR2 } from './r2.js';
+import { downloadFile, uploadFile } from './storage.js';
 import { updateJob } from './job-manager.js';
 
 export interface StemResult {
@@ -23,7 +23,7 @@ export async function runDemucs(
   try {
     // Download original audio from R2
     updateJob(jobId, { status: 'downloading', progress: 10 });
-    await downloadFromR2(r2Key, inputPath);
+    await downloadFile(r2Key, inputPath);
 
     // Run Demucs: --two-stems bass produces bass + no_bass
     updateJob(jobId, { status: 'processing', progress: 20 });
@@ -73,7 +73,7 @@ export async function runDemucs(
       const filePath = join(stemDir, file);
       const r2StemKey = `tracks/${trackId}/stems/${stemType}.wav`;
 
-      await uploadToR2(r2StemKey, filePath, 'audio/wav');
+      await uploadFile(r2StemKey, filePath, 'audio/wav');
       const fileInfo = await stat(filePath);
 
       results.push({

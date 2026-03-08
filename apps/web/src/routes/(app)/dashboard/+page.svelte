@@ -8,11 +8,15 @@
   let { data }: { data: PageData } = $props();
 
   let processingTrackId = $state<string | null>(null);
+  let processingJobId = $state<string | null>(null);
+
+  // YouTube import state
+  let youtubeUrl = $state('');
+  let youtubeImporting = $state(false);
+  let youtubeError = $state('');
 
   async function handleUploadComplete(trackId: string) {
-    // Refresh the track list
     await invalidateAll();
-    // Trigger stem separation
     processingTrackId = trackId;
     try {
       const res = await fetch('/api/process', {
@@ -23,15 +27,48 @@
       if (!res.ok) {
         console.error('Failed to trigger processing');
         processingTrackId = null;
+        return;
       }
+      const result = await res.json();
+      processingJobId = result.jobId;
     } catch {
       processingTrackId = null;
+      processingJobId = null;
     }
   }
 
   function handleProcessingComplete() {
     processingTrackId = null;
+    processingJobId = null;
     invalidateAll();
+  }
+
+  async function handleYouTubeImport() {
+    if (!youtubeUrl.trim()) return;
+    youtubeError = '';
+    youtubeImporting = true;
+
+    try {
+      const res = await fetch('/api/import/youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: youtubeUrl }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: 'Import failed' }));
+        youtubeError = data.error ?? 'Import failed';
+        youtubeImporting = false;
+        return;
+      }
+      const result = await res.json();
+      processingJobId = result.jobId;
+      processingTrackId = 'youtube-import';
+      youtubeUrl = '';
+      youtubeImporting = false;
+    } catch {
+      youtubeError = 'Failed to start import';
+      youtubeImporting = false;
+    }
   }
 </script>
 
@@ -51,9 +88,32 @@
       <UploadZone onUploadComplete={handleUploadComplete} />
     </section>
 
+    <section>
+      <h2 class="mb-3 text-lg font-semibold">Import from YouTube</h2>
+      <div class="flex gap-3">
+        <input
+          type="text"
+          bind:value={youtubeUrl}
+          placeholder="https://www.youtube.com/watch?v=..."
+          class="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/30 focus:border-neon-cyan focus:outline-none"
+          disabled={youtubeImporting}
+        />
+        <button
+          onclick={handleYouTubeImport}
+          disabled={youtubeImporting || !youtubeUrl.trim()}
+          class="rounded-lg bg-neon-cyan/20 px-4 py-2 text-sm font-medium text-neon-cyan transition hover:bg-neon-cyan/30 disabled:opacity-40"
+        >
+          {youtubeImporting ? 'Importing...' : 'Import'}
+        </button>
+      </div>
+      {#if youtubeError}
+        <p class="mt-2 text-sm text-red-400">{youtubeError}</p>
+      {/if}
+    </section>
+
     {#if processingTrackId}
       <section>
-        <ProcessingStatus trackId={processingTrackId} onComplete={handleProcessingComplete} />
+        <ProcessingStatus trackId={processingTrackId} jobId={processingJobId} onComplete={handleProcessingComplete} />
       </section>
     {/if}
 

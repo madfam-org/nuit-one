@@ -10,6 +10,9 @@ const securityHeaders: Handle = async ({ event, resolve }) => {
   return response;
 };
 
+const DEV_USER_ID = '00000000-0000-0000-0000-000000000001';
+const DEV_WORKSPACE_ID = '00000000-0000-0000-0000-000000000002';
+
 const auth: Handle = async ({ event, resolve }) => {
   const { pathname } = event.url;
 
@@ -18,8 +21,20 @@ const auth: Handle = async ({ event, resolve }) => {
     return resolve(event);
   }
 
-  // TODO Phase 0: Integrate Janua JWT validation
-  // For now, check for session cookie
+  // Dev bypass: auto-set session cookie in non-production
+  if (process.env.NODE_ENV !== 'production') {
+    let sessionToken = event.cookies.get('nuit_session');
+    if (!sessionToken) {
+      sessionToken = 'dev-session-token';
+      event.cookies.set('nuit_session', sessionToken, { path: '/', httpOnly: true, sameSite: 'lax' });
+    }
+    event.locals.accessToken = sessionToken;
+    event.locals.userId = DEV_USER_ID;
+    event.locals.workspaceId = DEV_WORKSPACE_ID;
+    return resolve(event);
+  }
+
+  // Production: check for session cookie
   const sessionToken = event.cookies.get('nuit_session');
   if (!sessionToken) {
     return new Response(null, {
@@ -28,11 +43,10 @@ const auth: Handle = async ({ event, resolve }) => {
     });
   }
 
-  // Placeholder: extract user info from session
-  // In production, validate JWT against Janua's JWKS endpoint
+  // TODO: validate JWT against Janua's JWKS endpoint
   event.locals.accessToken = sessionToken;
-  event.locals.userId = 'dev-user';
-  event.locals.workspaceId = 'dev-workspace';
+  event.locals.userId = DEV_USER_ID;
+  event.locals.workspaceId = DEV_WORKSPACE_ID;
 
   return resolve(event);
 };

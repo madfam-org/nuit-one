@@ -2,7 +2,7 @@ export type JobStatus = 'queued' | 'downloading' | 'processing' | 'uploading' | 
 
 export interface Job {
   id: string;
-  trackId: string;
+  trackId: string | undefined;
   status: JobStatus;
   progress: number;
   error?: string;
@@ -11,7 +11,7 @@ export interface Job {
 
 const jobs = new Map<string, Job>();
 
-export function createJob(trackId: string): Job {
+export function createJob(trackId?: string): Job {
   const id = crypto.randomUUID();
   const job: Job = {
     id,

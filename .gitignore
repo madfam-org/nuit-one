@@ -32,6 +32,12 @@ Thumbs.db
 # Test coverage
 coverage/
 
+# Local dev storage
+/storage/
+
+# Python venv
+.venv/
+
 # Logs
 *.log
 npm-debug.log*

@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { downloadFromR2 } from './r2.js';
+import { downloadFile } from './storage.js';
 import { updateJob } from './job-manager.js';
 import type { NoteEvent } from '@nuit-one/shared';
 
@@ -17,7 +17,7 @@ export async function runTranscription(
   try {
     // Download stem from R2
     updateJob(jobId, { status: 'downloading', progress: 10 });
-    await downloadFromR2(r2Key, inputPath);
+    await downloadFile(r2Key, inputPath);
 
     // Run Basic Pitch
     updateJob(jobId, { status: 'processing', progress: 30 });

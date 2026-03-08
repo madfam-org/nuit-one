@@ -4,7 +4,7 @@ import { eq, desc } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const userId = locals.userId ?? 'dev-user';
+  const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
 
   const tracks = await db
     .select()

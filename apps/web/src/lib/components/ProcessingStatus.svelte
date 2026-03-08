@@ -4,15 +4,17 @@
 
   interface Props {
     trackId: string;
+    jobId?: string | null;
     onComplete: () => void;
   }
 
-  const { trackId, onComplete }: Props = $props();
+  const { trackId, jobId: externalJobId, onComplete }: Props = $props();
 
   let status = $state<string>('queued');
   let progress = $state(0);
   let errorMsg = $state('');
-  let jobId = $state<string | null>(null);
+  let internalJobId = $state<string | null>(null);
+  let jobId = $derived(externalJobId ?? internalJobId);
 
   const statusLabels: Record<string, string> = {
     queued: 'Queued',
@@ -23,11 +25,10 @@
     error: 'Error',
   };
 
-  // Start polling when we get a jobId
+  // If no jobId was provided externally, trigger processing to get one
   $effect(() => {
-    if (!trackId) return;
+    if (externalJobId || internalJobId || !trackId) return;
 
-    // First, trigger processing and get jobId
     fetch('/api/process', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -35,7 +36,7 @@
     })
       .then((r) => r.json())
       .then((data) => {
-        jobId = data.jobId;
+        internalJobId = data.jobId;
       })
       .catch((err) => {
         errorMsg = err instanceof Error ? err.message : 'Failed to start processing';

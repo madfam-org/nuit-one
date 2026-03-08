@@ -14,7 +14,7 @@ The platform is built as a Turborepo monorepo deployed on Hetzner via Enclii (Ku
 | API | Hono (Node.js) | REST endpoints, JWT validation |
 | Auth | Janua SSO (OAuth 2.0) | Identity, workspace RBAC |
 | Database | PostgreSQL + Drizzle ORM | Projects, tracks, stems, performances |
-| Object Storage | Cloudflare R2 | Audio stems, WASM binaries |
+| Object Storage | Cloudflare R2 / local FS | Audio stems, WASM binaries (local dev: `./storage/`) |
 | Audio Engine | C++ -> WASM (Emscripten) | AudioWorklet DSP, ring buffer |
 | AI Inference | ONNX Runtime (WASM/GPU) | Basic Pitch, Demucs, SongDriver |
 | Real-time | Soketi (Pusher-compat) | WebSocket collaboration events |
@@ -58,13 +58,15 @@ nuit-one/
 
 ### Bass Karaoke MVP (Phases A-D) ✅
 
-**Status: COMPLETE**
+**Status: COMPLETE — RUNNABLE**
 
 **Goal:** Upload a song, AI-separate stems, play back with bass muted, show notes, score performance.
 
+**Quick Start:** `chmod +x scripts/setup-dev.sh && ./scripts/setup-dev.sh && pnpm dev`
+
 #### Phase A -- Upload & Store
 - Drag-and-drop upload zone with progress bar (UploadZone.svelte)
-- R2 presigned URL upload flow (client → signed URL → R2 PUT → confirm)
+- Dual-mode storage: local filesystem (dev) or R2 presigned URLs (prod)
 - Track creation in DB with status tracking (pending_upload → uploaded)
 - Dashboard with TrackList showing upload status via NeonBadge
 - Server-side load functions for user's tracks
@@ -72,15 +74,15 @@ nuit-one/
 #### Phase B -- Stem Separation
 - Demucs CLI wrapper (`--two-stems bass`) producing bass + no_bass stems
 - In-memory job manager with status polling (3s interval)
-- R2 upload/download for stems on API service
+- Storage adapter (local/R2) for stems on API service
 - SvelteKit → Hono API bridge routes for processing
-- ProcessingStatus component with progress bar
+- ProcessingStatus component with progress bar (accepts external jobId to prevent double-trigger)
 
 #### Phase C -- Multi-Stem Playback
 - StemPlayer class using Web Audio API (AudioBufferSourceNode + GainNode)
 - Per-stem volume, mute, and solo controls (StemMixer.svelte)
 - Transport bar with play/pause, seek, keyboard shortcuts (Space, arrows)
-- COEP-safe audio proxy at `/api/audio/[...path]` for R2 content
+- COEP-safe audio proxy at `/api/audio/[...path]` for R2 or local content
 - Svelte 5 reactive player store with rAF-based time updates
 - Bass karaoke default: backing track at 100%, bass muted
 
@@ -91,6 +93,12 @@ nuit-one/
 - Scoring engine with timing windows (25/50/100ms) and combo multipliers (1-4x)
 - Performance mode page with countdown → play → results flow
 - Results screen with grade (S/A/B/C/D/F), stats grid, accuracy
+
+#### Dev Infrastructure
+- One-command setup: `scripts/setup-dev.sh` (PostgreSQL, Python venv, ffmpeg, yt-dlp)
+- Dev auth bypass: auto-session with deterministic UUIDs, no Janua required
+- Local filesystem storage: `STORAGE_MODE=local` stores files in `./storage/`
+- YouTube import: paste a URL → yt-dlp download → Demucs → Basic Pitch → ready to play
 
 ### Phase 1 -- Core Recording and Playback
 

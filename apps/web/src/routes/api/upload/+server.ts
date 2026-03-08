@@ -1,6 +1,6 @@
 import { json, error } from '@sveltejs/kit';
 import { db } from '$lib/server/db.js';
-import { getUploadUrl } from '$lib/server/r2.js';
+import { getUploadUrl } from '$lib/server/storage.js';
 import { schema } from '@nuit-one/db';
 import { eq } from 'drizzle-orm';
 import { MAX_UPLOAD_SIZE_BYTES, SUPPORTED_MIME_TYPES } from '@nuit-one/shared';
@@ -29,7 +29,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     throw error(400, `Unsupported audio format. Supported: ${SUPPORTED_MIME_TYPES.join(', ')}`);
   }
 
-  const workspaceId = locals.workspaceId ?? 'dev-workspace';
+  const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
 
   // Find or create default project for this workspace
   let project = await db.query.projects.findFirst({

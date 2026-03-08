@@ -23,7 +23,19 @@ async function getJWKS(): Promise<jose.JSONWebKeySet> {
   return jwks;
 }
 
+export const DEV_USER_ID = '00000000-0000-0000-0000-000000000001';
+export const DEV_WORKSPACE_ID = '00000000-0000-0000-0000-000000000002';
+
 export const jwtAuth = createMiddleware(async (c, next) => {
+  // Dev bypass: skip JWT validation in non-production
+  if (process.env.NODE_ENV !== 'production') {
+    c.set('auth', {
+      userId: DEV_USER_ID,
+      workspaceId: DEV_WORKSPACE_ID,
+    });
+    return next();
+  }
+
   const authHeader = c.req.header('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: 'Missing authorization token' }, 401);
