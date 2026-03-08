@@ -29,7 +29,7 @@
 | Component | Role |
 |---|---|
 | **nuit-one-web** | SvelteKit app. SSR for initial load, SPA for workspace navigation. Serves WASM binaries and AudioWorklet scripts from `/static`. Handles OAuth callback and session cookies. |
-| **nuit-one-api** | Hono REST API. Validates JWTs against Janua JWKS endpoint. Manages projects, tracks, stems. Generates R2 presigned URLs for direct browser uploads. |
+| **nuit-one-api** | Hono REST API. Validates JWTs against Janua JWKS endpoint. Manages projects, tracks, stems. Generates R2 presigned URLs for direct browser uploads. Runs server-side AI processing: Demucs 4-stem separation, Basic Pitch transcription on all stems, and yt-dlp YouTube audio download. Production container includes Python 3, ffmpeg, and pre-downloaded htdemucs model (~2.5GB). |
 | **Janua SSO** | Self-hosted OAuth 2.0 / OpenID Connect provider. Manages user identities, workspace organizations, and role assignments. Publishes JWKS for stateless JWT verification. |
 | **PostgreSQL** | Primary data store. Schema managed by Drizzle ORM with migration files in `packages/db/src/migrations/`. Tables: projects, tracks, stems, performances, calibration_profiles. |
 | **Cloudflare R2** | Object storage for audio stems, WASM binaries, and exported mixes. S3-compatible API. No egress fees. Browser uploads via presigned PUT URLs. In local dev mode (`STORAGE_MODE=local`), a filesystem adapter stores files under `./storage/` instead. |
@@ -387,7 +387,7 @@ YouTube Import Flow:
     |                          |                          |-- mark track ready
 ```
 
-Requirements: `yt-dlp` and `ffmpeg` must be on PATH. The setup script installs both via Homebrew.
+Requirements: `yt-dlp` and `ffmpeg` must be on PATH. In local dev, the setup script installs both via Homebrew and creates a Python venv. In production, the API Dockerfile installs Python 3, ffmpeg, demucs, basic-pitch, and yt-dlp directly, and pre-downloads the htdemucs model at build time.
 
 ## Multi-Player Performance Architecture (Phase 3)
 
@@ -442,3 +442,29 @@ Key env vars for local dev:
 - `LOCAL_STORAGE_PATH=./storage` — filesystem storage root
 
 The API dev script (`apps/api/package.json`) prepends `.venv/bin` to PATH so that `demucs` and `basic-pitch` CLI tools are found when spawned as subprocesses.
+
+## Production Deployment
+
+The API service runs in a Docker container (`apps/api/Dockerfile`) that includes both Node.js and the Python AI toolchain. The Dockerfile uses a multi-stage build:
+
+1. **Build stage** (`node:22-slim`): Compiles TypeScript to JavaScript via Turborepo.
+2. **Runtime stage** (`node:22-slim` + Python 3): Installs Python 3, pip, ffmpeg, demucs, basic-pitch, and yt-dlp. Pre-downloads the htdemucs model (~2.5GB) at build time so the first import request doesn't stall on model download.
+
+The AI tools (`demucs`, `basic-pitch`, `yt-dlp`) are installed globally via pip3 and are available on PATH when spawned as subprocesses by the Node.js API.
+
+### Resource Requirements
+
+The API pod requires elevated resources due to Demucs stem separation:
+
+| Resource | Value | Rationale |
+|----------|-------|-----------|
+| CPU | 2000m | Demucs CPU inference is compute-intensive (~5 min per track) |
+| Memory | 3Gi | Demucs peak memory usage is ~2-3GB during separation |
+
+These are configured in `deploy/enclii.yaml` under the `api` service.
+
+### Capacity Notes
+
+- Demucs runs single-concurrency per pod (one import at a time). For multi-user scale, add a job queue (Redis/Bull) and scale pods horizontally.
+- The Docker image is large (~4GB) due to the pre-downloaded htdemucs model. Use a container registry with layer caching.
+- Basic Pitch transcription runs on all 4 stems sequentially after Demucs completes. Each stem takes ~10-30s on CPU.

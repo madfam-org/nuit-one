@@ -51,8 +51,8 @@ services:
     port: 3001
     replicas: 2
     resources:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 2000m
+      memory: 3Gi
     env:
       - name: NODE_ENV
         value: production

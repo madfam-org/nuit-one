@@ -16,7 +16,7 @@ The platform is built as a Turborepo monorepo deployed on Hetzner via Enclii (Ku
 | Database | PostgreSQL + Drizzle ORM | Projects, tracks, stems, performances |
 | Object Storage | Cloudflare R2 / local FS | Audio stems, WASM binaries (local dev: `./storage/`) |
 | Audio Engine | C++ -> WASM (Emscripten) | AudioWorklet DSP, ring buffer |
-| AI Inference | ONNX Runtime (WASM/GPU) | Basic Pitch, Demucs, SongDriver |
+| AI Inference | ONNX Runtime (WASM/GPU) + server-side Python CLI | Basic Pitch, Demucs (server-side stem separation + transcription), SongDriver, client-side chord/key/BPM |
 | Real-time | Soketi (Pusher-compat) | WebSocket collaboration events |
 | UI System | Svelte components | Neon-noir design tokens, Liquid Glass |
 | Monorepo | Turborepo + pnpm | Build orchestration, shared packages |
@@ -481,6 +481,8 @@ Items that Enclii does not handle and must be managed separately.
 | Soketi deployment | Custom K8s manifest (`deploy/k8s/soketi.yaml`) |
 | WASM binary hosting | Serve from SvelteKit static or R2 with CORP headers |
 | COOP/COEP headers | Configured in `deploy/enclii.yaml` service headers |
+| API Python/AI runtime | Handled in `apps/api/Dockerfile` — Python 3, ffmpeg, demucs, basic-pitch, yt-dlp installed; htdemucs model pre-downloaded at build time |
+| API resource sizing | API pod requires 2000m CPU + 3Gi memory for Demucs stem separation (configured in `deploy/enclii.yaml`) |
 | SSL certificates | Handled by Cloudflare Tunnel (no manual cert management) |
 | CI/CD pipeline | GitHub Actions (build, test, push images, deploy via Enclii CLI) |
 | Monitoring stack | Self-host Prometheus + Grafana on same cluster (Phase 7) |
