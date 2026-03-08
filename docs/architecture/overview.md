@@ -105,6 +105,10 @@ Dev UUIDs (consistent across both services):
 
 These are valid UUID v4 strings, required because the PostgreSQL schema uses `uuid()` column types.
 
+### Public Routes
+
+The SvelteKit auth hook exempts specific paths from authentication. The landing page (`/`) uses an exact match (`pathname === '/'`) rather than `startsWith('/')` to avoid accidentally exempting all routes. Auth-related prefixes (`/auth/login`, `/auth/callback`) use `startsWith` matching.
+
 ## Audio Data Flow
 
 The audio pipeline bypasses the JavaScript main thread entirely. All DSP runs in a C++/WASM module inside an AudioWorklet thread, communicating with the main thread through a lock-free ring buffer backed by `SharedArrayBuffer`.
@@ -387,7 +391,9 @@ YouTube Import Flow:
     |                          |                          |-- mark track ready
 ```
 
-Requirements: `yt-dlp` and `ffmpeg` must be on PATH. In local dev, the setup script installs both via Homebrew and creates a Python venv. In production, the API Dockerfile installs Python 3, ffmpeg, demucs, basic-pitch, and yt-dlp directly, and pre-downloads the htdemucs model at build time.
+Requirements: `yt-dlp` and `ffmpeg` must be on PATH. Basic Pitch is invoked with `--save-note-events` to produce CSV output; the CSV uses `start_time_s,end_time_s` columns (duration is computed as `endTime - startTime`). Each stem is transcribed independently with per-stem error handling (non-fatal).
+
+In local dev, the setup script installs both via Homebrew and creates a Python venv with compatible dependency pins. In production, the API Dockerfile installs Python 3, ffmpeg, demucs, basic-pitch, and yt-dlp directly, and pre-downloads the htdemucs model at build time.
 
 ## Multi-Player Performance Architecture (Phase 3)
 
@@ -431,17 +437,18 @@ chmod +x scripts/setup-dev.sh && ./scripts/setup-dev.sh
 
 This script:
 1. Installs `ffmpeg` and `yt-dlp` via Homebrew
-2. Creates a Python venv at `.venv/` with `demucs` and `basic-pitch`
+2. Creates a Python venv at `.venv/` with upgraded pip/setuptools, `numpy<2` (PyTorch 2.2 compat), pre-built `llvmlite`/`numba` wheels, `demucs`, and `basic-pitch`
 3. Starts PostgreSQL and creates the `nuitone` database
-4. Creates `.env` from `.env.example` with local dev overrides
-5. Runs `pnpm install` and `pnpm db:push` (schema sync)
+4. Creates `.env` from `.env.example` with local dev overrides (absolute `LOCAL_STORAGE_PATH`)
+5. Runs `pnpm install` and pushes DB schema via `tsx`-wrapped `drizzle-kit`
 
 Key env vars for local dev:
 - `NODE_ENV=development` — enables auth bypass
-- `STORAGE_MODE=local` — uses `./storage/` instead of R2
-- `LOCAL_STORAGE_PATH=./storage` — filesystem storage root
+- `STORAGE_MODE=local` — uses filesystem storage instead of R2
+- `LOCAL_STORAGE_PATH=/absolute/path/to/storage` — must be absolute because the web app and API run from different working directories
+- `API_PORT=3001` — API server port (avoids conflict with SvelteKit's `PORT=3000`)
 
-The API dev script (`apps/api/package.json`) prepends `.venv/bin` to PATH so that `demucs` and `basic-pitch` CLI tools are found when spawned as subprocesses.
+The API dev script (`apps/api/package.json`) uses `--env-file=../../.env` with tsx to load the monorepo root `.env`, and prepends `.venv/bin` to PATH so that `demucs` and `basic-pitch` CLI tools are found when spawned as subprocesses.
 
 ## Production Deployment
 

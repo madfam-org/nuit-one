@@ -32,8 +32,9 @@ Thumbs.db
 # Test coverage
 coverage/
 
-# Local dev storage
+# Local dev storage (root and per-app)
 /storage/
+apps/*/storage/
 
 # Python venv
 .venv/

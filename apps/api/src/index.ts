@@ -28,7 +28,7 @@ app.route('/api/import', importRoutes);
 app.route('/api/performances', performanceRoutes);
 app.route('/api/analysis', analysisRoutes);
 
-const port = parseInt(process.env.PORT ?? '3001', 10);
+const port = parseInt(process.env.API_PORT ?? '3001', 10);
 console.log(`Nuit One API running on port ${port}`);
 
 serve({ fetch: app.fetch, port });

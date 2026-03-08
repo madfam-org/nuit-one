@@ -21,6 +21,10 @@ if [ ! -d .venv ]; then
 fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
+pip install --quiet --upgrade pip setuptools wheel
+# Pin numpy<2 for PyTorch 2.2 compatibility; install llvmlite/numba from pre-built wheels
+pip install --quiet 'numpy<2'
+pip install --quiet --only-binary :all: llvmlite numba
 pip install --quiet demucs basic-pitch
 echo "Installed demucs + basic-pitch in .venv"
 
@@ -39,12 +43,13 @@ echo "--- Setting up .env ---"
 if [ ! -f .env ]; then
   cp .env.example .env
   # Append dev-specific overrides
-  cat >> .env <<'ENVEOF'
+  # Use absolute path so both web app and API resolve the same storage directory
+  cat >> .env <<ENVEOF
 
 # --- Local Dev Overrides ---
 NODE_ENV=development
 STORAGE_MODE=local
-LOCAL_STORAGE_PATH=./storage
+LOCAL_STORAGE_PATH=$(pwd)/storage
 ENVEOF
   echo "Created .env from .env.example with local dev overrides"
 else
@@ -60,10 +65,13 @@ echo ""
 echo "--- Installing Node dependencies ---"
 pnpm install
 
-# 7. Push DB schema
+# 7. Push DB schema (use tsx to resolve .js→.ts imports in drizzle schema)
 echo ""
 echo "--- Pushing DB schema ---"
-DATABASE_URL=postgresql://nuitone:nuitone@localhost:5432/nuitone pnpm db:push
+DATABASE_URL=postgresql://nuitone:nuitone@localhost:5432/nuitone \
+  node node_modules/.pnpm/tsx@*/node_modules/tsx/dist/cli.cjs \
+  node_modules/.pnpm/drizzle-kit@*/node_modules/drizzle-kit/bin.cjs \
+  push --config packages/db/drizzle.config.ts
 
 echo ""
 echo "=== Setup complete! ==="

@@ -1,7 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 
-const PUBLIC_PATHS = ['/auth/login', '/auth/callback', '/'];
+const PUBLIC_PATH_PREFIXES = ['/auth/login', '/auth/callback'];
 
 const securityHeaders: Handle = async ({ event, resolve }) => {
   const response = await resolve(event);
@@ -16,8 +16,8 @@ const DEV_WORKSPACE_ID = '00000000-0000-0000-0000-000000000002';
 const auth: Handle = async ({ event, resolve }) => {
   const { pathname } = event.url;
 
-  // Skip auth for public paths
-  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+  // Skip auth for public paths (landing page and auth routes)
+  if (pathname === '/' || PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
     return resolve(event);
   }
 

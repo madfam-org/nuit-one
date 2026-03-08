@@ -182,10 +182,11 @@ Features that define Nuit One's unique position. No single competitor combines a
 - Results screen with grade (S/A/B/C/D/F), stats grid, accuracy
 
 #### Dev Infrastructure
-- One-command setup: `scripts/setup-dev.sh` (PostgreSQL, Python venv, ffmpeg, yt-dlp)
+- One-command setup: `scripts/setup-dev.sh` (PostgreSQL, Python venv with numpy<2 + pre-built wheels, ffmpeg, yt-dlp, demucs, basic-pitch, drizzle-kit via tsx)
 - Dev auth bypass: auto-session with deterministic UUIDs, no Janua required
-- Local filesystem storage: `STORAGE_MODE=local` stores files in `./storage/`
-- YouTube import: paste a URL → yt-dlp download → Demucs → Basic Pitch → ready to play
+- Local filesystem storage: `STORAGE_MODE=local` with absolute `LOCAL_STORAGE_PATH` (web + API run from different cwds)
+- API uses `API_PORT` env var (not `PORT`) to avoid conflict with SvelteKit; dev script uses `--env-file=../../.env`
+- YouTube import: paste URL → yt-dlp (`-f bestaudio --audio-quality 0`) → Demucs 4-stem → Basic Pitch (all stems, `--save-note-events`) → ready to play
 
 ### Phase 1 -- Core DAW Foundation ✅
 
