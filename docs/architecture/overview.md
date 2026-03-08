@@ -33,7 +33,7 @@
 | **Janua SSO** | Self-hosted OAuth 2.0 / OpenID Connect provider. Manages user identities, workspace organizations, and role assignments. Publishes JWKS for stateless JWT verification. |
 | **PostgreSQL** | Primary data store. Schema managed by Drizzle ORM with migration files in `packages/db/src/migrations/`. Tables: projects, tracks, stems, performances, calibration_profiles. |
 | **Cloudflare R2** | Object storage for audio stems, WASM binaries, and exported mixes. S3-compatible API. No egress fees. Browser uploads via presigned PUT URLs. In local dev mode (`STORAGE_MODE=local`), a filesystem adapter stores files under `./storage/` instead. |
-| **Soketi** | Self-hosted Pusher-compatible WebSocket server. Powers real-time collaboration: presence, cursor sync, stem delivery notifications (Phase 3+). |
+| **Soketi** | Self-hosted Pusher-compatible WebSocket server. Powers real-time collaboration: presence, cursor sync, stem delivery notifications (Phase 4+). |
 | **ONNX Runtime** | Runs AI models (Demucs, Basic Pitch, SongDriver) locally in the browser via WASM or WebGPU backends. No server round-trips during live performance. |
 
 ## Authentication Flow
@@ -263,8 +263,8 @@ Strict COEP (`require-corp`) blocks cross-origin fetches to R2 signed URLs. The 
 | **SvelteKit over Next.js** | Svelte compiles to vanilla JS with no virtual DOM overhead. Smaller client bundles matter for a WASM-heavy app where every kilobyte of JS competes with the audio engine for parse time. Server-side rendering for SEO on public pages. |
 | **Soketi over managed Pusher** | Self-hosted on the same Hetzner cluster. No message-volume pricing. Pusher client libraries work unchanged. Can scale horizontally with Redis adapter if needed. |
 | **ONNX Runtime in browser** | AI inference on the user's device avoids network latency during live performance. Models load once and run at near-native speed via WASM/WebGPU backends. Server-side fallback available for devices without sufficient compute. |
-| **Server-side AI for MVP** | The bass karaoke MVP uses server-side Demucs and Basic Pitch via CLI subprocesses for simplicity. In-browser ONNX inference is planned for Phase 2 to eliminate server round-trips. |
-| **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain control does not need sample-level DSP. The AudioWorklet pipeline is reserved for real-time recording (Phase 1+). |
+| **Server-side AI for MVP** | The bass karaoke MVP uses server-side Demucs and Basic Pitch via CLI subprocesses for simplicity. In-browser ONNX inference is planned for Phase 2 (AI Intelligence Layer) to eliminate server round-trips. |
+| **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain control does not need sample-level DSP. The AudioWorklet pipeline is reserved for real-time recording (Phase 1: Core DAW Foundation). |
 | **Dual-mode storage** | A unified storage adapter (`apps/api/src/lib/storage.ts`, `apps/web/src/lib/server/storage.ts`) delegates to local filesystem or Cloudflare R2 based on `STORAGE_MODE` env var. This eliminates the R2 dependency for local development. |
 | **Monorepo with Turborepo** | Shared types (`packages/shared`) prevent API/frontend drift. Single `pnpm install`. Turborepo caches builds across packages. CI runs only affected packages on each push. |
 
