@@ -26,3 +26,16 @@ export interface PerformanceResult {
   /** Accuracy as percentage 0-100 */
   readonly accuracy: number;
 }
+
+/** Request body for saving a performance */
+export interface SavePerformanceRequest {
+  readonly trackId: string;
+  readonly stemId?: string | null;
+  readonly totalScore: number;
+  readonly maxCombo: number;
+  readonly perfectCount: number;
+  readonly greatCount: number;
+  readonly goodCount: number;
+  readonly missCount: number;
+  readonly accuracy: number;
+}

@@ -4,9 +4,10 @@
 
   interface Props {
     player: PlayerStore;
+    showPan?: boolean;
   }
 
-  const { player }: Props = $props();
+  const { player, showPan = false }: Props = $props();
 
   const stemColors: Record<string, string> = {
     bass: '#00f5ff',
@@ -45,6 +46,19 @@
           class="volume-slider"
           style:--slider-color={color}
         />
+
+        {#if showPan}
+          <input
+            type="range"
+            min="-1"
+            max="1"
+            step="0.01"
+            value={stem.pan}
+            oninput={(e) => player.setPan(stem.name, parseFloat((e.target as HTMLInputElement).value))}
+            class="pan-slider"
+            title="Pan: {stem.pan > 0 ? 'R' : stem.pan < 0 ? 'L' : 'C'}{Math.abs(Math.round(stem.pan * 100))}"
+          />
+        {/if}
 
         <Button
           variant="ghost"
@@ -137,6 +151,34 @@
     border-radius: 50%;
     background: var(--slider-color, #00f5ff);
     box-shadow: 0 0 8px var(--slider-color, rgba(0, 245, 255, 0.4));
+    border: none;
+    cursor: pointer;
+  }
+
+  .pan-slider {
+    width: 60px;
+    height: 4px;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .pan-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #a0a0b0;
+    cursor: pointer;
+  }
+
+  .pan-slider::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #a0a0b0;
     border: none;
     cursor: pointer;
   }

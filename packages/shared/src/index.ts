@@ -27,6 +27,7 @@ export type {
   NoteEvent,
   HitJudgment,
   PerformanceResult,
+  SavePerformanceRequest,
 } from './types/index.js';
 
 export {

@@ -53,6 +53,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       id: track.id,
       title: track.title,
     },
+    bassStemId: bassStem?.id ?? null,
     stemUrls,
     notes,
     hasNotes: notes.length > 0,

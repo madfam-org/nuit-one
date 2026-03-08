@@ -11,10 +11,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   if (!userId) throw error(401, 'Unauthorized');
 
   const body = await request.json();
-  const { filename, contentType, size } = body as {
+  const { filename, contentType, size, projectId: requestedProjectId } = body as {
     filename: string;
     contentType: string;
     size: number;
+    projectId?: string;
   };
 
   if (!filename || !contentType || !size) {
@@ -31,10 +32,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
 
-  // Find or create default project for this workspace
-  let project = await db.query.projects.findFirst({
-    where: eq(schema.projects.workspaceId, workspaceId),
-  });
+  // Use requested project or find/create default
+  let project = requestedProjectId
+    ? await db.query.projects.findFirst({
+        where: eq(schema.projects.id, requestedProjectId),
+      })
+    : await db.query.projects.findFirst({
+        where: eq(schema.projects.workspaceId, workspaceId),
+      });
 
   if (!project) {
     const [newProject] = await db

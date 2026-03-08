@@ -4,6 +4,7 @@
   interface Props {
     variant?: 'primary' | 'secondary' | 'ghost';
     size?: 'sm' | 'md' | 'lg';
+    type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
     class?: string;
     onclick?: (event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) => void;
@@ -13,6 +14,7 @@
   const {
     variant = 'primary',
     size = 'md',
+    type = 'button',
     disabled = false,
     class: className = '',
     onclick,
@@ -32,7 +34,7 @@
   style:--btn-font-size={sizes[size].fontSize}
   {disabled}
   {onclick}
-  type="button"
+  {type}
 >
   {#if children}
     {@render children()}

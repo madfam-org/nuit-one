@@ -124,6 +124,17 @@
 
     if (scoringEngine) {
       results = scoringEngine.getResults();
+
+      // Save performance (fire-and-forget)
+      fetch('/api/performances', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackId: data.track.id,
+          stemId: data.bassStemId,
+          ...results,
+        }),
+      }).catch((err) => console.error('Failed to save performance:', err));
     }
   }
 
@@ -215,6 +226,7 @@
     <ResultsScreen
       result={results}
       trackTitle={data.track.title}
+      trackId={data.track.id}
       onReplay={replay}
       onBack={goBack}
     />

@@ -78,6 +78,7 @@
       <span class="text-neon-cyan">Nuit</span> One
     </h1>
     <div class="flex items-center gap-4">
+      <a href="/projects" class="text-text-secondary text-sm hover:text-neon-cyan transition-colors">Projects</a>
       <span class="text-text-secondary text-sm">{data.user?.displayName ?? 'User'}</span>
     </div>
   </header>

@@ -6,6 +6,7 @@ import { jwtAuth } from './middleware/auth.js';
 import { stemRoutes } from './routes/stems.js';
 import { importRoutes } from './routes/import.js';
 import { healthRoutes } from './routes/health.js';
+import { performanceRoutes } from './routes/performances.js';
 
 const app = new Hono();
 
@@ -23,6 +24,7 @@ app.route('/health', healthRoutes);
 app.use('/api/*', jwtAuth);
 app.route('/api/stems', stemRoutes);
 app.route('/api/import', importRoutes);
+app.route('/api/performances', performanceRoutes);
 
 const port = parseInt(process.env.PORT ?? '3001', 10);
 console.log(`Nuit One API running on port ${port}`);

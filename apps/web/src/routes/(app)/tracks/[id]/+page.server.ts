@@ -14,6 +14,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (!track) throw error(404, 'Track not found');
   if (track.status !== 'ready') throw error(400, 'Track is not ready for playback');
 
+  // Load project for tempo/time sig
+  const project = await db.query.projects.findFirst({
+    where: eq(schema.projects.id, track.projectId),
+  });
+
   // Get stems for this track
   const trackStems = await db
     .select()
@@ -45,6 +50,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       id: track.id,
       title: track.title,
       status: track.status,
+      tempoBpm: project?.tempoBpm ?? 120,
+      timeSignature: project?.timeSignature ?? '4/4',
     },
     stemUrls,
     stems: stemsData,

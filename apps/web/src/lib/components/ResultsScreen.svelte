@@ -5,11 +5,12 @@
   interface Props {
     result: PerformanceResult;
     trackTitle: string;
+    trackId?: string;
     onReplay: () => void;
     onBack: () => void;
   }
 
-  const { result, trackTitle, onReplay, onBack }: Props = $props();
+  const { result, trackTitle, trackId, onReplay, onBack }: Props = $props();
 
   function grade(accuracy: number): { letter: string; color: string } {
     if (accuracy >= 95) return { letter: 'S', color: '#00f5ff' };
@@ -68,6 +69,9 @@
       <div class="actions">
         <Button variant="primary" onclick={onReplay}>Play Again</Button>
         <Button variant="secondary" onclick={onBack}>Back to Track</Button>
+        {#if trackId}
+          <a href="/tracks/{trackId}/stats" class="stats-link">View Stats</a>
+        {/if}
       </div>
     </div>
   </GlassCard>
@@ -179,5 +183,21 @@
     display: flex;
     gap: 0.75rem;
     justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stats-link {
+    font-size: 0.75rem;
+    color: #a0a0b0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 150ms ease;
+    width: 100%;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+
+  .stats-link:hover {
+    color: #00f5ff;
   }
 </style>

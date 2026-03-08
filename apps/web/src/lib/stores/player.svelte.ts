@@ -5,6 +5,11 @@ interface StemInfo {
   volume: number;
   muted: boolean;
   solo: boolean;
+  pan: number;
+  eqLow: number;
+  eqMid: number;
+  eqHigh: number;
+  reverbAmount: number;
 }
 
 export function createPlayerStore() {
@@ -14,6 +19,9 @@ export function createPlayerStore() {
   let duration = $state(0);
   let loading = $state(false);
   let stems = $state<StemInfo[]>([]);
+  let loopStart = $state<number | null>(null);
+  let loopEnd = $state<number | null>(null);
+  let isLooping = $state(false);
   let animFrameId: number | null = null;
 
   function tick() {
@@ -36,7 +44,6 @@ export function createPlayerStore() {
       cancelAnimationFrame(animFrameId);
       animFrameId = null;
     }
-    // Sync final state
     if (player) {
       currentTime = player.currentTime;
       isPlaying = player.isPlaying;
@@ -50,6 +57,9 @@ export function createPlayerStore() {
     get loading() { return loading; },
     get stems() { return stems; },
     get player() { return player; },
+    get loopStart() { return loopStart; },
+    get loopEnd() { return loopEnd; },
+    get isLooping() { return isLooping; },
 
     async loadStems(stemUrls: Record<string, string>, bassKaraokeMode = true) {
       loading = true;
@@ -63,15 +73,18 @@ export function createPlayerStore() {
 
         duration = player.duration;
 
-        // Set up stem info
         stems = player.stemNames.map((name) => ({
           name,
           volume: 1,
           muted: false,
           solo: false,
+          pan: 0,
+          eqLow: 0,
+          eqMid: 0,
+          eqHigh: 0,
+          reverbAmount: 0,
         }));
 
-        // Bass karaoke mode: mute bass, full volume on accompaniment
         if (bassKaraokeMode) {
           const bassIdx = stems.findIndex((s) => s.name === 'bass');
           if (bassIdx >= 0) {
@@ -94,6 +107,13 @@ export function createPlayerStore() {
     pause() {
       player?.pause();
       isPlaying = false;
+      stopTicking();
+    },
+
+    stop() {
+      player?.stop();
+      isPlaying = false;
+      currentTime = 0;
       stopTicking();
     },
 
@@ -144,6 +164,42 @@ export function createPlayerStore() {
       }));
     },
 
+    setPan(stemName: string, value: number) {
+      player?.setPan(stemName, value);
+      const stem = stems.find((s) => s.name === stemName);
+      if (stem) stem.pan = value;
+    },
+
+    setEq(stemName: string, band: 'low' | 'mid' | 'high', gain: number) {
+      player?.setEq(stemName, band, gain);
+      const stem = stems.find((s) => s.name === stemName);
+      if (stem) {
+        if (band === 'low') stem.eqLow = gain;
+        else if (band === 'mid') stem.eqMid = gain;
+        else stem.eqHigh = gain;
+      }
+    },
+
+    setReverbSend(stemName: string, amount: number) {
+      player?.setReverbSend(stemName, amount);
+      const stem = stems.find((s) => s.name === stemName);
+      if (stem) stem.reverbAmount = amount;
+    },
+
+    setLoopRegion(start: number, end: number) {
+      player?.setLoopRegion(start, end);
+      loopStart = start;
+      loopEnd = end;
+      isLooping = true;
+    },
+
+    clearLoopRegion() {
+      player?.clearLoopRegion();
+      loopStart = null;
+      loopEnd = null;
+      isLooping = false;
+    },
+
     destroy() {
       stopTicking();
       player?.destroy();
@@ -152,6 +208,9 @@ export function createPlayerStore() {
       currentTime = 0;
       duration = 0;
       stems = [];
+      loopStart = null;
+      loopEnd = null;
+      isLooping = false;
     },
   };
 }

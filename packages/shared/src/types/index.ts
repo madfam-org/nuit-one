@@ -45,4 +45,5 @@ export type {
   NoteEvent,
   HitJudgment,
   PerformanceResult,
+  SavePerformanceRequest,
 } from './game.js';
