@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+
+/* Nuit One — Neon-Noir Design Tokens */
+@theme {
+  /* Background */
+  --color-nuit-base: #0a0a0f;
+  --color-nuit-surface: #12121a;
+  --color-nuit-elevated: #1a1a2e;
+
+  /* Neon accents */
+  --color-neon-cyan: #00f5ff;
+  --color-neon-magenta: #ff00e5;
+  --color-neon-violet: #8b5cf6;
+  --color-neon-amber: #f59e0b;
+  --color-neon-green: #00ff88;
+
+  /* Text */
+  --color-text-primary: #f0f0f5;
+  --color-text-secondary: #a0a0b0;
+  --color-text-muted: #606070;
+
+  /* Fonts */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Base styles */
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-nuit-base);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Liquid Glass utility */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Neon glow utilities */
+.glow-cyan { box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
+.glow-magenta { box-shadow: 0 0 20px rgba(255, 0, 229, 0.3); }
+.glow-violet { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }

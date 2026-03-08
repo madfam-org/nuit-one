@@ -1,0 +1,28 @@
+{
+  "name": "@nuit-one/ui",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./tokens": "./src/tokens/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json",
+    "lint": "echo 'no linter configured'"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@nuit-one/audio-engine",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./bindings/index.ts"
+  },
+  "scripts": {
+    "build:wasm": "bash build.sh",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no linter configured'"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -1,0 +1,18 @@
+import { pgTable, uuid, text, integer, bigint, real, timestamp } from 'drizzle-orm/pg-core';
+import { tracks } from './tracks.js';
+
+export const stems = pgTable('stems', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  trackId: uuid('track_id')
+    .notNull()
+    .references(() => tracks.id, { onDelete: 'cascade' }),
+  r2Key: text('r2_key').notNull(),
+  fileSizeBytes: bigint('file_size_bytes', { mode: 'number' }),
+  durationSeconds: real('duration_seconds'),
+  sampleRate: integer('sample_rate').default(44100),
+  source: text('source', {
+    enum: ['upload', 'recording', 'demucs', 'basic_pitch'],
+  }),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});

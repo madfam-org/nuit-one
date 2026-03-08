@@ -1,0 +1,85 @@
+# Nuit One — Enclii Deployment Configuration
+# Deployed on Hetzner via Enclii (Kubernetes + Cloudflare Tunnel)
+
+project:
+  name: nuit-one
+  domain: nuit.one
+
+services:
+  web:
+    name: nuit-one-web
+    dockerfile: apps/web/Dockerfile
+    port: 3000
+    replicas: 2
+    resources:
+      cpu: 500m
+      memory: 512Mi
+    env:
+      - name: NODE_ENV
+        value: production
+      - name: JANUA_URL
+        secret: janua-url
+      - name: JANUA_CLIENT_ID
+        secret: janua-client-id
+      - name: JANUA_CLIENT_SECRET
+        secret: janua-client-secret
+      - name: DATABASE_URL
+        secret: database-url
+      - name: R2_ENDPOINT
+        secret: r2-endpoint
+      - name: R2_ACCESS_KEY_ID
+        secret: r2-access-key-id
+      - name: R2_SECRET_ACCESS_KEY
+        secret: r2-secret-access-key
+      - name: R2_BUCKET_NAME
+        value: nuit-one-stems
+      - name: SESSION_SECRET
+        secret: session-secret
+    headers:
+      # CRITICAL: Required for SharedArrayBuffer (WASM AudioWorklet)
+      Cross-Origin-Opener-Policy: same-origin
+      Cross-Origin-Embedder-Policy: require-corp
+    healthCheck:
+      path: /
+      port: 3000
+      interval: 30s
+      timeout: 5s
+
+  api:
+    name: nuit-one-api
+    dockerfile: apps/api/Dockerfile
+    port: 3001
+    replicas: 2
+    resources:
+      cpu: 1000m
+      memory: 1Gi
+    env:
+      - name: NODE_ENV
+        value: production
+      - name: JANUA_URL
+        secret: janua-url
+      - name: DATABASE_URL
+        secret: database-url
+      - name: R2_ENDPOINT
+        secret: r2-endpoint
+      - name: R2_ACCESS_KEY_ID
+        secret: r2-access-key-id
+      - name: R2_SECRET_ACCESS_KEY
+        secret: r2-secret-access-key
+      - name: R2_BUCKET_NAME
+        value: nuit-one-stems
+      - name: PUBLIC_APP_URL
+        value: https://nuit.one
+    healthCheck:
+      path: /health
+      port: 3001
+      interval: 30s
+      timeout: 5s
+
+routes:
+  - host: nuit.one
+    paths:
+      - path: /api
+        service: api
+      - path: /
+        service: web

@@ -1,0 +1,81 @@
+# Soketi — Self-hosted Pusher-compatible WebSocket server
+# Used for real-time collaboration features (Phase 3+)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soketi
+  namespace: nuit-one
+  labels:
+    app: soketi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: soketi
+  template:
+    metadata:
+      labels:
+        app: soketi
+    spec:
+      containers:
+        - name: soketi
+          image: quay.io/soketi/soketi:1.6-16-debian
+          ports:
+            - containerPort: 6001
+              name: ws
+            - containerPort: 9601
+              name: metrics
+          env:
+            - name: SOKETI_DEFAULT_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: soketi-secrets
+                  key: app-id
+            - name: SOKETI_DEFAULT_APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: soketi-secrets
+                  key: app-key
+            - name: SOKETI_DEFAULT_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: soketi-secrets
+                  key: app-secret
+            - name: SOKETI_DEFAULT_APP_ENABLE_CLIENT_MESSAGES
+              value: "true"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 6001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 6001
+            initialDelaySeconds: 10
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: soketi
+  namespace: nuit-one
+spec:
+  selector:
+    app: soketi
+  ports:
+    - name: ws
+      port: 6001
+      targetPort: 6001
+    - name: metrics
+      port: 9601
+      targetPort: 9601
+  type: ClusterIP

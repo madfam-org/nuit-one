@@ -1,0 +1,16 @@
+# Cloudflare Tunnel — Route configuration for nuit.one
+# Managed by Enclii, included here for reference
+tunnel: <tunnel-id>
+credentials-file: /etc/cloudflare/credentials.json
+
+ingress:
+  - hostname: nuit.one
+    path: /api/*
+    service: http://nuit-one-api:3001
+    originRequest:
+      noTLSVerify: true
+  - hostname: nuit.one
+    service: http://nuit-one-web:3000
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404
