@@ -17,6 +17,11 @@
     "db:push": "pnpm --filter @nuit-one/db push",
     "clean": "turbo clean && rm -rf node_modules"
   },
+  "pnpm": {
+    "overrides": {
+      "drizzle-orm": "^0.39.0"
+    }
+  },
   "devDependencies": {
     "turbo": "^2.4.0",
     "typescript": "^5.7.0"

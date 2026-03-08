@@ -175,6 +175,69 @@ The SvelteKit frontend reads the role from the session and conditionally renders
 
 The SvelteKit frontend presents a workspace switcher in the sidebar. Selecting a different workspace triggers a re-authentication flow against Janua with the new `org_id`, producing a fresh JWT scoped to that workspace. This ensures complete data isolation between workspaces without client-side filtering.
 
+## Bass Karaoke Data Flow
+
+The bass karaoke MVP uses server-side AI processing (Demucs, Basic Pitch) rather than in-browser ONNX Runtime. Audio playback uses standard Web Audio API (`AudioBufferSourceNode` + `GainNode`) rather than the WASM AudioWorklet pipeline, as synchronized stem playback does not require sample-level DSP.
+
+```
+Upload Flow:
+  Browser                  SvelteKit                 R2 / DB
+    |                          |                        |
+    |-- POST /api/upload ----->|                        |
+    |   {filename, type, size} |-- Create track row --->|
+    |                          |-- getUploadUrl() ----->|
+    |<-- {trackId, uploadUrl} -|                        |
+    |                          |                        |
+    |-- PUT uploadUrl -------->|                   (direct to R2)
+    |                          |                        |
+    |-- POST /api/upload/confirm ->|                    |
+    |                          |-- status='uploaded' -->|
+
+Stem Separation Flow:
+  SvelteKit                  Hono API                 R2 / DB
+    |                          |                        |
+    |-- POST /api/process ---->|                        |
+    |   {trackId}              |-- Download original -->|
+    |                          |-- demucs --two-stems bass
+    |                          |-- Upload bass.wav ---->|
+    |                          |-- Upload no_bass.wav ->|
+    |                          |-- Create stems rows -->|
+    |<-- {jobId} --------------|                        |
+    |                          |                        |
+    |-- GET /api/process/:id ->|  (poll every 3s)      |
+    |<-- {status, progress} ---|                        |
+
+Playback Flow (COEP-safe):
+  Browser                  SvelteKit                 R2
+    |                          |                      |
+    |-- GET /api/audio/... --->|                      |
+    |                          |-- getDownloadUrl() ->|
+    |                          |<-- signed URL -------|
+    |                          |-- fetch(signed URL) ->|
+    |                          |<-- audio data --------|
+    |<-- audio + CORP headers -|                      |
+    |                          |                      |
+    |  AudioContext.decodeAudioData()                  |
+    |  AudioBufferSourceNode per stem                  |
+    |  GainNode per stem (volume/mute/solo)           |
+    |  → destination (speakers)                        |
+
+Performance Scoring Flow:
+  Browser (all client-side)
+    |
+    |  StemPlayer: play backing track (no_bass at 100%, bass at 0%)
+    |  NoteHighway: canvas render scrolling notes from NoteEvent[]
+    |  PitchDetector: getUserMedia() → AnalyserNode → autocorrelation
+    |  ScoringEngine: compare detected pitch vs expected notes
+    |    → HIT_WINDOWS: perfect 25ms, great 50ms, good 100ms
+    |    → Combo multiplier: 1x/2x/3x/4x
+    |  ResultsScreen: grade (S/A/B/C/D/F), accuracy %, score
+```
+
+### COEP Audio Proxy
+
+Strict COEP (`require-corp`) blocks cross-origin fetches to R2 signed URLs. The SvelteKit server route at `/api/audio/[...path]` acts as a same-origin proxy: it fetches audio from R2 server-side and serves it to the browser with `Cross-Origin-Resource-Policy: same-origin` headers. This allows the audio to load without relaxing COEP.
+
 ## Key Design Decisions
 
 | Decision | Rationale |
@@ -187,4 +250,6 @@ The SvelteKit frontend presents a workspace switcher in the sidebar. Selecting a
 | **SvelteKit over Next.js** | Svelte compiles to vanilla JS with no virtual DOM overhead. Smaller client bundles matter for a WASM-heavy app where every kilobyte of JS competes with the audio engine for parse time. Server-side rendering for SEO on public pages. |
 | **Soketi over managed Pusher** | Self-hosted on the same Hetzner cluster. No message-volume pricing. Pusher client libraries work unchanged. Can scale horizontally with Redis adapter if needed. |
 | **ONNX Runtime in browser** | AI inference on the user's device avoids network latency during live performance. Models load once and run at near-native speed via WASM/WebGPU backends. Server-side fallback available for devices without sufficient compute. |
+| **Server-side AI for MVP** | The bass karaoke MVP uses server-side Demucs and Basic Pitch via CLI subprocesses for simplicity. In-browser ONNX inference is planned for Phase 2 to eliminate server round-trips. |
+| **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain control does not need sample-level DSP. The AudioWorklet pipeline is reserved for real-time recording (Phase 1+). |
 | **Monorepo with Turborepo** | Shared types (`packages/shared`) prevent API/frontend drift. Single `pnpm install`. Turborepo caches builds across packages. CI runs only affected packages on each push. |

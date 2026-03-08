@@ -31,6 +31,8 @@ const auth: Handle = async ({ event, resolve }) => {
   // Placeholder: extract user info from session
   // In production, validate JWT against Janua's JWKS endpoint
   event.locals.accessToken = sessionToken;
+  event.locals.userId = 'dev-user';
+  event.locals.workspaceId = 'dev-workspace';
 
   return resolve(event);
 };

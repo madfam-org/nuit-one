@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  drizzle-orm: ^0.39.0
+
 importers:
 
   .:
@@ -17,12 +20,24 @@ importers:
 
   apps/api:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.700.0
+        version: 3.1004.0
+      '@aws-sdk/s3-request-presigner':
+        specifier: ^3.700.0
+        version: 3.1004.0
       '@hono/node-server':
         specifier: ^1.13.0
         version: 1.19.11(hono@4.12.5)
+      '@nuit-one/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@nuit-one/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      drizzle-orm:
+        specifier: ^0.39.0
+        version: 0.39.3(postgres@3.4.8)
       hono:
         specifier: ^4.7.0
         version: 4.12.5
@@ -63,6 +78,9 @@ importers:
       '@nuit-one/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      drizzle-orm:
+        specifier: ^0.39.0
+        version: 0.39.3(postgres@3.4.8)
     devDependencies:
       '@sveltejs/adapter-node':
         specifier: ^5.0.0

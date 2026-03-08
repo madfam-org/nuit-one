@@ -11,6 +11,7 @@ import type {
   MidiTrack,
   TrackStatus,
   StemSource,
+  StemType,
   Project,
   Track,
   Stem,
@@ -24,6 +25,9 @@ import type {
   CalibrationProfile,
   CalibrationStep,
   CalibrationState,
+  NoteEvent,
+  HitJudgment,
+  PerformanceResult,
 } from './index.js';
 
 // ---------------------------------------------------------------------------
@@ -292,15 +296,26 @@ describe('project types', () => {
       expectTypeOf<'approved'>().toMatchTypeOf<TrackStatus>();
     });
 
+    it('accepts upload lifecycle statuses', () => {
+      expectTypeOf<'pending_upload'>().toMatchTypeOf<TrackStatus>();
+      expectTypeOf<'uploaded'>().toMatchTypeOf<TrackStatus>();
+      expectTypeOf<'processing'>().toMatchTypeOf<TrackStatus>();
+      expectTypeOf<'ready'>().toMatchTypeOf<TrackStatus>();
+      expectTypeOf<'error'>().toMatchTypeOf<TrackStatus>();
+    });
+
     it('rejects invalid statuses', () => {
       expectTypeOf<'draft'>().not.toMatchTypeOf<TrackStatus>();
       expectTypeOf<'archived'>().not.toMatchTypeOf<TrackStatus>();
     });
 
-    it('covers exactly 4 status values at runtime', () => {
-      const allStatuses: TrackStatus[] = ['needs_parts', 'in_progress', 'delivered', 'approved'];
-      expect(allStatuses).toHaveLength(4);
-      expect(new Set(allStatuses).size).toBe(4);
+    it('covers all 9 status values at runtime', () => {
+      const allStatuses: TrackStatus[] = [
+        'pending_upload', 'uploaded', 'processing', 'ready', 'error',
+        'needs_parts', 'in_progress', 'delivered', 'approved',
+      ];
+      expect(allStatuses).toHaveLength(9);
+      expect(new Set(allStatuses).size).toBe(9);
     });
   });
 
@@ -321,6 +336,27 @@ describe('project types', () => {
       const allSources: StemSource[] = ['upload', 'recording', 'demucs', 'basic_pitch'];
       expect(allSources).toHaveLength(4);
       expect(new Set(allSources).size).toBe(4);
+    });
+  });
+
+  describe('StemType', () => {
+    it('accepts all valid stem types', () => {
+      expectTypeOf<'bass'>().toMatchTypeOf<StemType>();
+      expectTypeOf<'no_bass'>().toMatchTypeOf<StemType>();
+      expectTypeOf<'vocals'>().toMatchTypeOf<StemType>();
+      expectTypeOf<'drums'>().toMatchTypeOf<StemType>();
+      expectTypeOf<'other'>().toMatchTypeOf<StemType>();
+    });
+
+    it('rejects invalid stem types', () => {
+      expectTypeOf<'guitar'>().not.toMatchTypeOf<StemType>();
+      expectTypeOf<'piano'>().not.toMatchTypeOf<StemType>();
+    });
+
+    it('covers exactly 5 stem type values at runtime', () => {
+      const allTypes: StemType[] = ['bass', 'no_bass', 'vocals', 'drums', 'other'];
+      expect(allTypes).toHaveLength(5);
+      expect(new Set(allTypes).size).toBe(5);
     });
   });
 
@@ -354,8 +390,14 @@ describe('project types', () => {
     it('has the expected shape', () => {
       expectTypeOf<Track>().toHaveProperty('id');
       expectTypeOf<Track>().toHaveProperty('projectId');
+      expectTypeOf<Track>().toHaveProperty('userId');
+      expectTypeOf<Track>().toHaveProperty('title');
       expectTypeOf<Track>().toHaveProperty('instrument');
       expectTypeOf<Track>().toHaveProperty('status');
+      expectTypeOf<Track>().toHaveProperty('r2Key');
+      expectTypeOf<Track>().toHaveProperty('originalFilename');
+      expectTypeOf<Track>().toHaveProperty('fileSizeBytes');
+      expectTypeOf<Track>().toHaveProperty('contentType');
       expectTypeOf<Track>().toHaveProperty('assignedTo');
       expectTypeOf<Track>().toHaveProperty('sortOrder');
       expectTypeOf<Track>().toHaveProperty('createdAt');
@@ -365,8 +407,14 @@ describe('project types', () => {
       const track: Track = {
         id: 'track-1',
         projectId: 'proj-1',
+        userId: 'user-1',
+        title: 'Test Track',
         instrument: 'Guitar',
         status: 'needs_parts',
+        r2Key: null,
+        originalFilename: null,
+        fileSizeBytes: null,
+        contentType: null,
         assignedTo: null,
         sortOrder: 0,
         createdAt: '2026-01-01T00:00:00Z',
@@ -378,8 +426,14 @@ describe('project types', () => {
       const track: Track = {
         id: 'track-2',
         projectId: 'proj-1',
+        userId: 'user-1',
+        title: 'Test Track 2',
         instrument: 'Bass',
         status: 'in_progress',
+        r2Key: 'tracks/123/original/song.wav',
+        originalFilename: 'song.wav',
+        fileSizeBytes: 1048576,
+        contentType: 'audio/wav',
         assignedTo: 'user-1',
         sortOrder: 1,
         createdAt: '2026-01-01T00:00:00Z',
@@ -392,11 +446,13 @@ describe('project types', () => {
     it('has the expected shape', () => {
       expectTypeOf<Stem>().toHaveProperty('id');
       expectTypeOf<Stem>().toHaveProperty('trackId');
+      expectTypeOf<Stem>().toHaveProperty('stemType');
       expectTypeOf<Stem>().toHaveProperty('r2Key');
       expectTypeOf<Stem>().toHaveProperty('fileSizeBytes');
       expectTypeOf<Stem>().toHaveProperty('durationSeconds');
       expectTypeOf<Stem>().toHaveProperty('sampleRate');
       expectTypeOf<Stem>().toHaveProperty('source');
+      expectTypeOf<Stem>().toHaveProperty('midiData');
       expectTypeOf<Stem>().toHaveProperty('createdBy');
       expectTypeOf<Stem>().toHaveProperty('createdAt');
     });
@@ -405,11 +461,13 @@ describe('project types', () => {
       const stem: Stem = {
         id: 'stem-1',
         trackId: 'track-1',
+        stemType: 'bass',
         r2Key: 'stems/abc123.wav',
         fileSizeBytes: 1048576,
         durationSeconds: 30.5,
         sampleRate: 44100,
         source: 'upload',
+        midiData: null,
         createdBy: 'user-1',
         createdAt: '2026-01-01T00:00:00Z',
       };
@@ -665,6 +723,106 @@ describe('calibration types', () => {
       };
       expect(state.currentStep).toBe('audio_output');
       expect(state.measurements).toHaveLength(4);
+    });
+  });
+});
+
+describe('game types', () => {
+  describe('NoteEvent', () => {
+    it('has the expected shape', () => {
+      expectTypeOf<NoteEvent>().toHaveProperty('startTime');
+      expectTypeOf<NoteEvent>().toHaveProperty('duration');
+      expectTypeOf<NoteEvent>().toHaveProperty('pitch');
+      expectTypeOf<NoteEvent>().toHaveProperty('velocity');
+    });
+
+    it('all fields are numbers', () => {
+      expectTypeOf<NoteEvent['startTime']>().toBeNumber();
+      expectTypeOf<NoteEvent['duration']>().toBeNumber();
+      expectTypeOf<NoteEvent['pitch']>().toBeNumber();
+      expectTypeOf<NoteEvent['velocity']>().toBeNumber();
+    });
+
+    it('accepts a conforming runtime object', () => {
+      const note: NoteEvent = {
+        startTime: 1.5,
+        duration: 0.25,
+        pitch: 40,
+        velocity: 80,
+      };
+      expect(note.startTime).toBe(1.5);
+      expect(note.pitch).toBe(40);
+    });
+
+    it('accepts bass guitar range MIDI notes', () => {
+      const lowE: NoteEvent = { startTime: 0, duration: 1, pitch: 28, velocity: 100 };
+      const highG: NoteEvent = { startTime: 1, duration: 1, pitch: 67, velocity: 90 };
+      expect(lowE.pitch).toBe(28);
+      expect(highG.pitch).toBe(67);
+    });
+  });
+
+  describe('HitJudgment', () => {
+    it('is an alias for HitResult', () => {
+      expectTypeOf<HitJudgment>().toEqualTypeOf<HitResult>();
+    });
+
+    it('accepts all valid judgments', () => {
+      expectTypeOf<'perfect'>().toMatchTypeOf<HitJudgment>();
+      expectTypeOf<'great'>().toMatchTypeOf<HitJudgment>();
+      expectTypeOf<'good'>().toMatchTypeOf<HitJudgment>();
+      expectTypeOf<'miss'>().toMatchTypeOf<HitJudgment>();
+    });
+  });
+
+  describe('PerformanceResult', () => {
+    it('has the expected shape', () => {
+      expectTypeOf<PerformanceResult>().toHaveProperty('totalScore');
+      expectTypeOf<PerformanceResult>().toHaveProperty('maxCombo');
+      expectTypeOf<PerformanceResult>().toHaveProperty('perfectCount');
+      expectTypeOf<PerformanceResult>().toHaveProperty('greatCount');
+      expectTypeOf<PerformanceResult>().toHaveProperty('goodCount');
+      expectTypeOf<PerformanceResult>().toHaveProperty('missCount');
+      expectTypeOf<PerformanceResult>().toHaveProperty('accuracy');
+    });
+
+    it('all fields are numbers', () => {
+      expectTypeOf<PerformanceResult['totalScore']>().toBeNumber();
+      expectTypeOf<PerformanceResult['maxCombo']>().toBeNumber();
+      expectTypeOf<PerformanceResult['perfectCount']>().toBeNumber();
+      expectTypeOf<PerformanceResult['greatCount']>().toBeNumber();
+      expectTypeOf<PerformanceResult['goodCount']>().toBeNumber();
+      expectTypeOf<PerformanceResult['missCount']>().toBeNumber();
+      expectTypeOf<PerformanceResult['accuracy']>().toBeNumber();
+    });
+
+    it('accepts a conforming runtime object', () => {
+      const result: PerformanceResult = {
+        totalScore: 12500,
+        maxCombo: 42,
+        perfectCount: 30,
+        greatCount: 15,
+        goodCount: 5,
+        missCount: 2,
+        accuracy: 87.5,
+      };
+      expect(result.totalScore).toBe(12500);
+      expect(result.maxCombo).toBe(42);
+      expect(result.accuracy).toBe(87.5);
+    });
+
+    it('accepts a perfect score result', () => {
+      const perfect: PerformanceResult = {
+        totalScore: 50000,
+        maxCombo: 100,
+        perfectCount: 100,
+        greatCount: 0,
+        goodCount: 0,
+        missCount: 0,
+        accuracy: 100,
+      };
+      expect(perfect.missCount).toBe(0);
+      expect(perfect.accuracy).toBe(100);
     });
   });
 });

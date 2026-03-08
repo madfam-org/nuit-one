@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, bigint, timestamp } from 'drizzle-orm/pg-core';
 import { projects } from './projects.js';
 
 export const tracks = pgTable('tracks', {
@@ -6,12 +6,21 @@ export const tracks = pgTable('tracks', {
   projectId: uuid('project_id')
     .notNull()
     .references(() => projects.id, { onDelete: 'cascade' }),
-  instrument: text('instrument').notNull(),
+  userId: uuid('user_id').notNull(),
+  title: text('title').notNull(),
+  instrument: text('instrument').notNull().default('full_mix'),
   status: text('status', {
-    enum: ['needs_parts', 'in_progress', 'delivered', 'approved'],
+    enum: [
+      'pending_upload', 'uploaded', 'processing', 'ready', 'error',
+      'needs_parts', 'in_progress', 'delivered', 'approved',
+    ],
   })
     .notNull()
-    .default('needs_parts'),
+    .default('pending_upload'),
+  r2Key: text('r2_key'),
+  originalFilename: text('original_filename'),
+  fileSizeBytes: bigint('file_size_bytes', { mode: 'number' }),
+  contentType: text('content_type'),
   assignedTo: uuid('assigned_to'),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),

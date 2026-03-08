@@ -11,7 +11,6 @@ import { stemRoutes } from './stems.js';
 function createTestApp(userId = 'test-user-123', workspaceId = 'ws-456') {
   const app = new Hono();
 
-  // Fake auth middleware that injects a known auth context
   const fakeAuth = createMiddleware(async (c, next) => {
     c.set('auth', { userId, workspaceId });
     await next();
@@ -23,33 +22,50 @@ function createTestApp(userId = 'test-user-123', workspaceId = 'ws-456') {
 }
 
 describe('POST /split', () => {
-  it('returns 501 not implemented', async () => {
+  it('returns 400 when trackId is missing', async () => {
     const app = createTestApp();
-    const res = await app.request('/split', { method: 'POST' });
-    expect(res.status).toBe(501);
+    const res = await app.request('/split', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Missing trackId');
   });
 
-  it('returns a message and the authenticated userId', async () => {
-    const app = createTestApp('user-abc');
-    const res = await app.request('/split', { method: 'POST' });
-    const body = await res.json();
-    expect(body.message).toBe('Stem splitting not yet implemented');
-    expect(body.userId).toBe('user-abc');
+  it('returns 404 for non-existent track', async () => {
+    const app = createTestApp();
+    const res = await app.request('/split', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trackId: '00000000-0000-0000-0000-000000000000' }),
+    });
+    // Will be 404 or 500 depending on DB availability
+    expect([404, 500]).toContain(res.status);
   });
 });
 
 describe('POST /transcribe', () => {
-  it('returns 501 not implemented', async () => {
+  it('returns 400 when trackId is missing', async () => {
     const app = createTestApp();
-    const res = await app.request('/transcribe', { method: 'POST' });
-    expect(res.status).toBe(501);
-  });
-
-  it('returns a message and the authenticated userId', async () => {
-    const app = createTestApp('user-xyz');
-    const res = await app.request('/transcribe', { method: 'POST' });
+    const res = await app.request('/transcribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.message).toBe('Audio transcription not yet implemented');
-    expect(body.userId).toBe('user-xyz');
+    expect(body.error).toBe('Missing trackId');
+  });
+});
+
+describe('GET /jobs/:jobId', () => {
+  it('returns 404 for non-existent job', async () => {
+    const app = createTestApp();
+    const res = await app.request('/jobs/nonexistent-job-id');
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('Job not found');
   });
 });

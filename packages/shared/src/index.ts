@@ -10,6 +10,7 @@ export type {
   MidiTrack,
   TrackStatus,
   StemSource,
+  StemType,
   Project,
   Track,
   Stem,
@@ -23,6 +24,9 @@ export type {
   CalibrationProfile,
   CalibrationStep,
   CalibrationState,
+  NoteEvent,
+  HitJudgment,
+  PerformanceResult,
 } from './types/index.js';
 
 export {
@@ -32,6 +36,12 @@ export {
   DEFAULT_BUFFER_SIZE,
   MAX_TRACKS_PER_PROJECT,
   MAX_STEMS_PER_TRACK,
+  MAX_UPLOAD_SIZE_MB,
+  MAX_UPLOAD_SIZE_BYTES,
   SUPPORTED_AUDIO_FORMATS,
+  SUPPORTED_MIME_TYPES,
+  TRACK_STATUSES,
+  STEM_TYPES,
   HIT_WINDOWS,
+  HIT_SCORES,
 } from './constants.js';

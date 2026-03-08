@@ -16,6 +16,7 @@ export type {
 export type {
   TrackStatus,
   StemSource,
+  StemType,
   Project,
   Track,
   Stem,
@@ -39,3 +40,9 @@ export type {
   CalibrationStep,
   CalibrationState,
 } from './calibration.js';
+
+export type {
+  NoteEvent,
+  HitJudgment,
+  PerformanceResult,
+} from './game.js';

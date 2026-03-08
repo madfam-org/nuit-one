@@ -1,8 +1,12 @@
-import type { SampleRate } from './audio.js';
+import type { NoteEvent } from './game.js';
 
-export type TrackStatus = 'needs_parts' | 'in_progress' | 'delivered' | 'approved';
+export type TrackStatus =
+  | 'pending_upload' | 'uploaded' | 'processing' | 'ready' | 'error'
+  | 'needs_parts' | 'in_progress' | 'delivered' | 'approved';
 
 export type StemSource = 'upload' | 'recording' | 'demucs' | 'basic_pitch';
+
+export type StemType = 'bass' | 'no_bass' | 'vocals' | 'drums' | 'other';
 
 export interface Project {
   readonly id: string;
@@ -17,8 +21,14 @@ export interface Project {
 export interface Track {
   readonly id: string;
   readonly projectId: string;
+  readonly userId: string;
+  readonly title: string;
   readonly instrument: string;
   readonly status: TrackStatus;
+  readonly r2Key: string | null;
+  readonly originalFilename: string | null;
+  readonly fileSizeBytes: number | null;
+  readonly contentType: string | null;
   readonly assignedTo: string | null;
   readonly sortOrder: number;
   readonly createdAt: string;
@@ -27,11 +37,13 @@ export interface Track {
 export interface Stem {
   readonly id: string;
   readonly trackId: string;
+  readonly stemType: StemType | null;
   readonly r2Key: string;
-  readonly fileSizeBytes: number;
-  readonly durationSeconds: number;
-  readonly sampleRate: SampleRate;
+  readonly fileSizeBytes: number | null;
+  readonly durationSeconds: number | null;
+  readonly sampleRate: number;
   readonly source: StemSource;
+  readonly midiData: readonly NoteEvent[] | null;
   readonly createdBy: string;
   readonly createdAt: string;
 }

@@ -73,11 +73,15 @@ describe('tracks table columns', () => {
 
   it('has the expected columns', () => {
     expect(Object.keys(cols).sort()).toEqual(
-      ['id', 'projectId', 'instrument', 'status', 'assignedTo', 'sortOrder', 'createdAt'].sort(),
+      [
+        'id', 'projectId', 'userId', 'title', 'instrument', 'status',
+        'r2Key', 'originalFilename', 'fileSizeBytes', 'contentType',
+        'assignedTo', 'sortOrder', 'createdAt',
+      ].sort(),
     );
   });
 
-  it('has status defaulting to needs_parts', () => {
+  it('has status defaulting to pending_upload', () => {
     expect(cols.status.hasDefault).toBe(true);
   });
 
@@ -94,11 +98,13 @@ describe('stems table columns', () => {
       [
         'id',
         'trackId',
+        'stemType',
         'r2Key',
         'fileSizeBytes',
         'durationSeconds',
         'sampleRate',
         'source',
+        'midiData',
         'createdBy',
         'createdAt',
       ].sort(),
