@@ -50,16 +50,16 @@ Features present in 5+ of 6 surveyed web DAWs. These are table stakes — users 
 
 | ID | Feature | Competitors | Nuit One Status | Target Phase |
 |----|---------|-------------|-----------------|--------------|
-| D1 | Waveform display on timeline | 6/6 | Not started | Phase 1 |
-| D2 | Full transport (stop, record, loop region) | 6/6 | Partial (play/pause/seek only) | Phase 1 |
-| D3 | Pan control | 6/6 | Not started (vol/mute/solo only) | Phase 1 |
-| D4 | Basic EQ + reverb | 6/6 | Not started | Phase 1 |
-| D5 | Audio recording from mic/interface | 6/6 | Not started | Phase 1 |
-| D6 | Project CRUD UI | 5/6 | Schema only (no UI) | Phase 1 |
-| D7 | Export to WAV/MP3 | 6/6 | Not started | Phase 1 |
-| D8 | Undo/redo | 6/6 | Not started | Phase 1 |
-| D9 | Tempo/time signature display | 5/6 | Schema only (DB columns exist) | Phase 1 |
-| D10 | Metronome | 5/6 | Not started | Phase 1 |
+| D1 | Waveform display on timeline | 6/6 | Done | Phase 1 ✅ |
+| D2 | Full transport (stop, record, loop region) | 6/6 | Done | Phase 1 ✅ |
+| D3 | Pan control | 6/6 | Done | Phase 1 ✅ |
+| D4 | Basic EQ + reverb | 6/6 | Done | Phase 1 ✅ |
+| D5 | Audio recording from mic/interface | 6/6 | Done | Phase 1 ✅ |
+| D6 | Project CRUD UI | 5/6 | Done | Phase 1 ✅ |
+| D7 | Export to WAV/MP3 | 6/6 | Done | Phase 1 ✅ |
+| D8 | Undo/redo | 6/6 | Done | Phase 1 ✅ |
+| D9 | Tempo/time signature display | 5/6 | Done | Phase 1 ✅ |
+| D10 | Metronome | 5/6 | Done | Phase 1 ✅ |
 | D11 | MIDI editing | 4/6 | Not started | Phase 3 |
 | D12 | AI mastering | 2/6 (BandLab, Moises) | Not started | Phase 5 |
 | D13 | Full effects chain (compression, delay, chorus) | 6/6 | Not started | Phase 5 |
@@ -167,24 +167,40 @@ Features that define Nuit One's unique position. No single competitor combines a
 - Local filesystem storage: `STORAGE_MODE=local` stores files in `./storage/`
 - YouTube import: paste a URL → yt-dlp download → Demucs → Basic Pitch → ready to play
 
-### Phase 1 -- Core DAW Foundation
+### Phase 1 -- Core DAW Foundation ✅
+
+**Status: COMPLETE**
 
 **Goal:** Deliver the baseline DAW features users expect on day one: waveform, recording, export, effects, undo, metronome.
 
-- WASM audio engine: gain, pan, metering, transport control
-- Multitrack timeline view with waveform rendering (D1)
-- Latency calibration wizard (audio round-trip, visual offset)
-- Project CRUD UI: create, rename, delete projects (D6 — schema exists, needs UI)
-- Full transport: stop, record, loop region with A-B markers (D2)
-- Pan control via StereoPannerNode (D3)
-- Basic effects: 3-band parametric EQ (BiquadFilterNode) + convolver reverb (D4). Full DSP chain stays Phase 5
-- Audio recording from mic/interface via MediaRecorder (D5)
-- WAV + MP3 export via OfflineAudioContext + lamejs (D7). Multi-format stays Phase 5
-- Undo/redo via command pattern (D8)
-- Tempo/time signature UI surfacing existing DB columns (D9)
-- Metronome: OscillatorNode click synced to project tempo (D10)
-- Persist performance results to `performances` table (bug fix — schema exists, results are currently discarded)
-- Algorithmic BPM detection for BYO songs (onset-based; needed for metronome sync, ML-refined version in Phase 2)
+#### Slice 1 -- MVP Stickiness
+- Performance persistence: POST/GET API routes + SvelteKit bridge (fire-and-forget save on game end)
+- Project CRUD UI: list, create, rename, delete with track count subquery (D6 ✅)
+- Progress tracking: per-track stats page with score trend chart (canvas-based, neon-noir)
+- Tempo/time signature settings UI surfacing existing DB columns (D9 ✅)
+
+#### Slice 2 -- Core DAW Identity
+- Extended StemPlayer signal chain: `source → eqLow → eqMid → eqHigh → gain → panner → destination` + reverb wet path via shared ConvolverNode
+- Pan control via StereoPannerNode per stem (D3 ✅)
+- 3-band parametric EQ: lowshelf 200Hz, peaking 1kHz, highshelf 4kHz (D4 ✅)
+- Convolver reverb with IR presets (room/hall/plate) (D4 ✅)
+- A-B loop region with auto-restart
+- Undo/redo via command pattern: CommandStack (max 100) + 6 command types (D8 ✅)
+- Canvas waveform display per stem with click-to-seek and shift-drag loop selection (D1 ✅)
+- Full transport: play, stop, loop toggle, A/B markers, keyboard shortcuts (D2 ✅)
+- DAW workspace route at `/projects/[id]` with multitrack timeline layout
+
+#### Slice 3 -- Recording & Export
+- Mic recording via getUserMedia + MediaRecorder with AnalyserNode level metering (D5 ✅)
+- WAV encoder: PCM 16-bit interleaved with proper header
+- MP3 export via lamejs (lazy loaded, ~100KB) (D7 ✅)
+- Export dialog: format selector (WAV/MP3), quality picker (128/192/320 kbps), download trigger
+- EQ controls: 3 vertical sliders (-12 to +12 dB) per stem
+- Reverb controls: amount slider + IR preset selector
+- Metronome: look-ahead scheduler with OscillatorNode clicks (880Hz downbeat, 440Hz others) (D10 ✅)
+- BPM detection: energy-based onset envelope + autocorrelation (60-200 BPM range)
+- Latency calibration wizard: 4-step UI (output → input → display → save)
+- Performance persistence bug fix: scores now saved to `performances` table
 
 ### Phase 2 -- AI Intelligence Layer
 
@@ -278,16 +294,16 @@ Features that define Nuit One's unique position. No single competitor combines a
 
 | ID | Feature | Phase | Status |
 |----|---------|-------|--------|
-| D1 | Waveform display | 1 | Not started |
-| D2 | Full transport | 1 | Partial |
-| D3 | Pan control | 1 | Not started |
-| D4 | Basic EQ + reverb | 1 | Not started |
-| D5 | Audio recording | 1 | Not started |
-| D6 | Project CRUD UI | 1 | Schema only |
-| D7 | WAV/MP3 export | 1 | Not started |
-| D8 | Undo/redo | 1 | Not started |
-| D9 | Tempo/time signature | 1 | Schema only |
-| D10 | Metronome | 1 | Not started |
+| D1 | Waveform display | 1 | Done |
+| D2 | Full transport | 1 | Done |
+| D3 | Pan control | 1 | Done |
+| D4 | Basic EQ + reverb | 1 | Done |
+| D5 | Audio recording | 1 | Done |
+| D6 | Project CRUD UI | 1 | Done |
+| D7 | WAV/MP3 export | 1 | Done |
+| D8 | Undo/redo | 1 | Done |
+| D9 | Tempo/time signature | 1 | Done |
+| D10 | Metronome | 1 | Done |
 | D11 | MIDI editing | 3 | Not started |
 | D12 | AI mastering | 5 | Not started |
 | D13 | Full effects chain | 5 | Not started |
@@ -306,7 +322,7 @@ Features that define Nuit One's unique position. No single competitor combines a
 | P6 | Real-time pitch detection | MVP | Done |
 | P7 | Scoring / grading | MVP | Done |
 | P8 | Multi-instrument support | 3 | Not started |
-| P9 | Progress tracking | 3 | Not started |
+| P9 | Progress tracking | 1 | Done (score history + trend chart) |
 | P10 | Subscription model | 7 | Not started |
 
 ### Strategic Differentiator Coverage
@@ -325,7 +341,7 @@ Features that define Nuit One's unique position. No single competitor combines a
 ```
 Phase 0 + Bass Karaoke MVP ........................ DONE
     |
-Phase 1: Core DAW Foundation
+Phase 1: Core DAW Foundation ...................... DONE
     (waveform, recording, export, EQ, metronome, project CRUD)
     |
 Phase 2: AI Intelligence Layer

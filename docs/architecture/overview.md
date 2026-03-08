@@ -188,6 +188,87 @@ The SvelteKit frontend reads the role from the session and conditionally renders
 
 The SvelteKit frontend presents a workspace switcher in the sidebar. Selecting a different workspace triggers a re-authentication flow against Janua with the new `org_id`, producing a fresh JWT scoped to that workspace. This ensures complete data isolation between workspaces without client-side filtering.
 
+## DAW Workspace Audio Architecture (Phase 1)
+
+The DAW workspace at `/projects/[id]` provides a multitrack timeline with per-stem audio controls. The signal chain is built from standard Web Audio API nodes, avoiding the WASM AudioWorklet (which is reserved for future real-time DSP).
+
+### Signal Chain per Stem
+
+```
+AudioBufferSourceNode
+        |
+  BiquadFilterNode (lowshelf, 200 Hz)
+        |
+  BiquadFilterNode (peaking, 1 kHz, Q=1)
+        |
+  BiquadFilterNode (highshelf, 4 kHz)
+        |
+     GainNode (volume)
+        |
+  StereoPannerNode (pan -1..1)
+        |
+        +----> AudioContext.destination (dry path)
+        |
+        +----> GainNode (reverb send, 0..1)
+                   |
+              ConvolverNode (shared IR: room/hall/plate)
+                   |
+              GainNode (reverb master)
+                   |
+              AudioContext.destination (wet path)
+```
+
+All parameters default to neutral (EQ 0 dB, pan center, reverb 0%) for backward compatibility with the bass karaoke playback path.
+
+### Undo/Redo
+
+The command pattern (`CommandStack` + 6 `Command` implementations) tracks parameter changes:
+- `VolumeChangeCommand`, `PanChangeCommand`, `MuteToggleCommand`, `SoloCommand`, `EqChangeCommand`, `ReverbChangeCommand`
+- Stack max size: 100. Keyboard shortcuts: Cmd+Z / Cmd+Shift+Z.
+
+### Recording Flow
+
+```
+Browser                                     SvelteKit
+  |                                            |
+  |  getUserMedia() → MediaStream              |
+  |  MediaStreamSource → AnalyserNode (metering)
+  |  MediaRecorder → Blob (webm/opus or mp4/aac)
+  |                                            |
+  |  On stop:                                  |
+  |  decodeAudioData(blob) → AudioBuffer       |
+  |  encodeWav(AudioBuffer) → WAV Blob         |
+  |  (consistent format regardless of browser) |
+```
+
+### Export Flow
+
+```
+OfflineAudioContext (2 channels, project duration)
+  |
+  For each non-muted stem:
+    BufferSource → Gain(volume) → StereoPanner(pan) → destination
+  |
+  startRendering() → rendered AudioBuffer
+  |
+  ├── WAV: encodeWav(rendered) → Blob (audio/wav)
+  └── MP3: lamejs.Mp3Encoder → Blob (audio/mp3)
+       (lamejs loaded lazily via dynamic import)
+```
+
+### Metronome
+
+Uses the "look-ahead scheduler" pattern: a `setInterval` callback schedules `OscillatorNode` clicks ahead of time using Web Audio's precise timing. Beat 1 plays 880 Hz sine; other beats play 440 Hz sine. Each click is a 10ms burst with exponential gain ramp-down.
+
+### BPM Detection
+
+Pure function: `detectBPM(AudioBuffer): number`
+1. Downsample to mono at ~11 kHz
+2. Compute energy per 20ms frame (onset envelope)
+3. Half-wave rectify first derivative (onset strength)
+4. Autocorrelate in frame domain (lags for 60-200 BPM range)
+5. Peak lag → BPM conversion
+
 ## Bass Karaoke Data Flow
 
 The bass karaoke MVP uses server-side AI processing (Demucs, Basic Pitch) rather than in-browser ONNX Runtime. Audio playback uses standard Web Audio API (`AudioBufferSourceNode` + `GainNode`) rather than the WASM AudioWorklet pipeline, as synchronized stem playback does not require sample-level DSP.
@@ -264,7 +345,10 @@ Strict COEP (`require-corp`) blocks cross-origin fetches to R2 signed URLs. The 
 | **Soketi over managed Pusher** | Self-hosted on the same Hetzner cluster. No message-volume pricing. Pusher client libraries work unchanged. Can scale horizontally with Redis adapter if needed. |
 | **ONNX Runtime in browser** | AI inference on the user's device avoids network latency during live performance. Models load once and run at near-native speed via WASM/WebGPU backends. Server-side fallback available for devices without sufficient compute. |
 | **Server-side AI for MVP** | The bass karaoke MVP uses server-side Demucs and Basic Pitch via CLI subprocesses for simplicity. In-browser ONNX inference is planned for Phase 2 (AI Intelligence Layer) to eliminate server round-trips. |
-| **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain control does not need sample-level DSP. The AudioWorklet pipeline is reserved for real-time recording (Phase 1: Core DAW Foundation). |
+| **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` + `BiquadFilterNode` + `StereoPannerNode` + `ConvolverNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain/EQ/pan/reverb does not need sample-level DSP. The AudioWorklet pipeline is reserved for future real-time DSP requiring sub-sample precision. |
+| **Command pattern for undo** | Simple, serializable command objects with `execute()`/`undo()` methods. Avoids state snapshots (which would be expensive for audio buffers). Stack max 100 to bound memory. |
+| **lamejs for MP3 export** | ~100KB minified, loaded lazily only on MP3 export. Avoids server round-trip for encoding. WAV export uses a custom encoder (56 lines) with no dependencies. |
+| **Frame-domain BPM detection** | Onset envelope autocorrelation uses frame-rate lags (not sample-rate), making the algorithm work correctly across all sample rates and buffer sizes. Energy-based approach works for rhythmic music; ML refinement planned for Phase 2. |
 | **Dual-mode storage** | A unified storage adapter (`apps/api/src/lib/storage.ts`, `apps/web/src/lib/server/storage.ts`) delegates to local filesystem or Cloudflare R2 based on `STORAGE_MODE` env var. This eliminates the R2 dependency for local development. |
 | **Monorepo with Turborepo** | Shared types (`packages/shared`) prevent API/frontend drift. Single `pnpm install`. Turborepo caches builds across packages. CI runs only affected packages on each push. |
 
