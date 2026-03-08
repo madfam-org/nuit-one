@@ -39,8 +39,10 @@ export async function downloadYouTubeAudio(url: string): Promise<YouTubeResult> 
   // Download audio as WAV
   await new Promise<void>((resolve, reject) => {
     const proc = spawn('yt-dlp', [
+      '-f', 'bestaudio',
       '-x',
       '--audio-format', 'wav',
+      '--audio-quality', '0',
       '-o', join(workDir, 'audio.%(ext)s'),
       '--no-warnings',
       url,

@@ -1,3 +1,9 @@
+export interface PitchDetectorOptions {
+  minFrequency?: number;
+  maxFrequency?: number;
+  deviceId?: string;
+}
+
 /**
  * Real-time pitch detection using autocorrelation (YIN-inspired).
  * Detects the fundamental frequency from microphone/line input.
@@ -13,21 +19,31 @@ export class PitchDetector {
   private _currentMidiNote = -1;
   private _confidence = 0;
   private rafId: number | null = null;
+  private minFreq: number;
+  private maxFreq: number;
+  private deviceId: string | undefined;
 
-  constructor(audioContext: AudioContext) {
+  constructor(audioContext: AudioContext, options?: PitchDetectorOptions) {
     this.ctx = audioContext;
+    this.minFreq = options?.minFrequency ?? 30;
+    this.maxFreq = options?.maxFrequency ?? 500;
+    this.deviceId = options?.deviceId;
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 4096;
     this.buffer = new Float32Array(this.analyser.fftSize) as Float32Array<ArrayBuffer>;
   }
 
   async start(): Promise<void> {
+    const constraints: MediaTrackConstraints = {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+    };
+    if (this.deviceId) {
+      constraints.deviceId = { exact: this.deviceId };
+    }
     this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-      },
+      audio: constraints,
     });
 
     this.source = this.ctx.createMediaStreamSource(this.stream);
@@ -95,8 +111,8 @@ export class PitchDetector {
     // Autocorrelation
     let bestOffset = -1;
     let bestCorrelation = 0;
-    const minPeriod = Math.floor(sampleRate / 500); // Max 500 Hz
-    const maxPeriod = Math.floor(sampleRate / 30);  // Min 30 Hz (bass range)
+    const minPeriod = Math.floor(sampleRate / this.maxFreq);
+    const maxPeriod = Math.floor(sampleRate / this.minFreq);
 
     for (let offset = minPeriod; offset < maxPeriod && offset < n / 2; offset++) {
       let correlation = 0;

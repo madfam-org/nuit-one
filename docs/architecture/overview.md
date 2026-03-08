@@ -269,9 +269,9 @@ Pure function: `detectBPM(AudioBuffer): number`
 4. Autocorrelate in frame domain (lags for 60-200 BPM range)
 5. Peak lag → BPM conversion
 
-## Bass Karaoke Data Flow
+## Multi-Instrument Karaoke Data Flow
 
-The bass karaoke MVP uses server-side AI processing (Demucs, Basic Pitch) rather than in-browser ONNX Runtime. Audio playback uses standard Web Audio API (`AudioBufferSourceNode` + `GainNode`) rather than the WASM AudioWorklet pipeline, as synchronized stem playback does not require sample-level DSP.
+The karaoke system uses server-side AI processing (Demucs 4-stem separation, Basic Pitch transcription on all stems) for track preparation, and client-side Web Audio API for real-time playback and scoring. Up to 4 players can perform simultaneously, each on a different instrument with their own microphone, PitchDetector, and ScoringEngine.
 
 ```
 Upload Flow:
@@ -292,10 +292,14 @@ Stem Separation Flow:
     |                          |                        |
     |-- POST /api/process ---->|                        |
     |   {trackId}              |-- Download original -->|
-    |                          |-- demucs --two-stems bass
+    |                          |-- demucs htdemucs (4-stem)
+    |                          |-- Upload vocals.wav -->|
+    |                          |-- Upload drums.wav --->|
     |                          |-- Upload bass.wav ---->|
-    |                          |-- Upload no_bass.wav ->|
+    |                          |-- Upload other.wav --->|
     |                          |-- Create stems rows -->|
+    |                          |-- Basic Pitch on ALL stems
+    |                          |-- Store midiData per stem
     |<-- {jobId} --------------|                        |
     |                          |                        |
     |-- GET /api/process/:id ->|  (poll every 3s)      |
@@ -316,16 +320,26 @@ Playback Flow (COEP-safe):
     |  GainNode per stem (volume/mute/solo)           |
     |  → destination (speakers)                        |
 
-Performance Scoring Flow:
+Multi-Player Performance Scoring Flow:
   Browser (all client-side)
     |
-    |  StemPlayer: play backing track (no_bass at 100%, bass at 0%)
-    |  NoteHighway: canvas render scrolling notes from NoteEvent[]
-    |  PitchDetector: getUserMedia() → AnalyserNode → autocorrelation
-    |  ScoringEngine: compare detected pitch vs expected notes
-    |    → HIT_WINDOWS: perfect 25ms, great 50ms, good 100ms
-    |    → Combo multiplier: 1x/2x/3x/4x
-    |  ResultsScreen: grade (S/A/B/C/D/F), accuracy %, score
+    |  Instrument selector: player picks from available instruments
+    |    (only stems with valid midiData shown)
+    |  Device selector: player picks audio input device
+    |    (getAudioInputDevices() via enumerateDevices)
+    |
+    |  Per player (up to 4 concurrent):
+    |    StemPlayer: mute the instrument being played
+    |    NoteHighway: canvas render with instrument-specific MIDI range
+    |      (bass: 28-72, vocals: 36-84, drums: 35-81, other: 21-108)
+    |    PitchDetector: getUserMedia({deviceId}) → autocorrelation
+    |      (instrument-specific freq range: bass 30-500Hz, vocals 80-1100Hz, etc.)
+    |    ScoringEngine: compare detected pitch vs stem's NoteEvent[]
+    |      → HIT_WINDOWS: perfect 25ms, great 50ms, good 100ms
+    |      → Combo multiplier: 1x/2x/3x/4x
+    |
+    |  Results: per-player grade (S/A/B/C/D/F), accuracy %, score
+    |  Performance save: fire-and-forget POST per player with stemId
 ```
 
 ### COEP Audio Proxy
@@ -344,7 +358,7 @@ Strict COEP (`require-corp`) blocks cross-origin fetches to R2 signed URLs. The 
 | **SvelteKit over Next.js** | Svelte compiles to vanilla JS with no virtual DOM overhead. Smaller client bundles matter for a WASM-heavy app where every kilobyte of JS competes with the audio engine for parse time. Server-side rendering for SEO on public pages. |
 | **Soketi over managed Pusher** | Self-hosted on the same Hetzner cluster. No message-volume pricing. Pusher client libraries work unchanged. Can scale horizontally with Redis adapter if needed. |
 | **ONNX Runtime in browser** | AI inference on the user's device avoids network latency during live performance. Models load once and run at near-native speed via WASM/WebGPU backends. Server-side fallback available for devices without sufficient compute. |
-| **Server-side AI for MVP** | The bass karaoke MVP uses server-side Demucs and Basic Pitch via CLI subprocesses for simplicity. In-browser ONNX inference is planned for Phase 2 (AI Intelligence Layer) to eliminate server round-trips. |
+| **Server-side AI for processing** | Track preparation (Demucs 4-stem separation, Basic Pitch transcription on all stems) runs server-side via CLI subprocesses. Client-side AI (chord/key/BPM detection, difficulty analysis) runs in Web Workers. In-browser ONNX inference for stem separation is a future optimization. |
 | **Web Audio API for playback** | Stem playback uses `AudioBufferSourceNode` + `GainNode` + `BiquadFilterNode` + `StereoPannerNode` + `ConvolverNode` rather than the WASM AudioWorklet. Synchronized buffer playback with gain/EQ/pan/reverb does not need sample-level DSP. The AudioWorklet pipeline is reserved for future real-time DSP requiring sub-sample precision. |
 | **Command pattern for undo** | Simple, serializable command objects with `execute()`/`undo()` methods. Avoids state snapshots (which would be expensive for audio buffers). Stack max 100 to bound memory. |
 | **lamejs for MP3 export** | ~100KB minified, loaded lazily only on MP3 export. Avoids server round-trip for encoding. WAV export uses a custom encoder (56 lines) with no dependencies. |
@@ -362,17 +376,50 @@ YouTube Import Flow:
     |                          |                          |
     |-- POST /api/import/youtube ->|                      |
     |   {url}                  |-- POST /api/import/youtube ->|
-    |                          |                          |-- yt-dlp download
+    |                          |                          |-- yt-dlp -f bestaudio
+    |                          |                          |   --audio-quality 0
     |                          |<-- {jobId} --------------|
     |<-- {jobId} --------------|                          |
     |                          |                          |-- create project/track
     |-- GET /api/process/:id ->|  (poll every 3s)        |-- upload to storage
-    |                          |-- GET /api/stems/jobs/:id ->|-- demucs stem split
-    |<-- {status, progress} ---|<-- job status ------------|-- basic-pitch transcribe
+    |                          |-- GET /api/stems/jobs/:id ->|-- demucs htdemucs (4-stem)
+    |<-- {status, progress} ---|<-- job status ------------|-- basic-pitch ALL stems
     |                          |                          |-- mark track ready
 ```
 
 Requirements: `yt-dlp` and `ffmpeg` must be on PATH. The setup script installs both via Homebrew.
+
+## Multi-Player Performance Architecture (Phase 3)
+
+The perform page at `/perform/[trackId]` supports up to 4 simultaneous players, each on a different instrument. The architecture is entirely client-side — no server coordination needed for local multi-player.
+
+### Instrument Configuration
+
+Instrument constants are centralized in `packages/shared/src/constants.ts`:
+
+| Instrument | Freq Range (Hz) | MIDI Range | Neon Color |
+|-----------|----------------|-----------|------------|
+| Bass | 30-500 | 28-72 (E1-C5) | `#8b5cf6` (violet) |
+| Vocals | 80-1100 | 36-84 (C2-C6) | `#00f5ff` (cyan) |
+| Drums | 60-500 | 35-81 (B1-A5) | `#f59e0b` (amber) |
+| Guitar/Keys | 27-4200 | 21-108 (A0-C8) | `#00ff88` (green) |
+
+### Multi-Player State
+
+Each player has an independent `PlayerConfig` containing:
+- **Instrument selection**: one of `PLAYABLE_INSTRUMENTS`, unique per player
+- **Device selection**: `deviceId` from `getAudioInputDevices()` for multi-mic setups
+- **PitchDetector**: parameterized with instrument-specific frequency range and device constraint
+- **ScoringEngine**: initialized with the selected stem's `NoteEvent[]`
+- **Score state**: score, combo, accuracy, recentJudgments — all independent per player
+
+### Stem Muting
+
+When the game starts, all instruments being played are muted from the backing track via `player.toggleMute(instrument)`. This allows each player to hear the full mix minus their part.
+
+### Device Selection
+
+`getAudioInputDevices()` requests temporary mic access to enumerate device labels (browser requirement), then immediately releases the stream. Each player can select a different audio input, enabling scenarios like one player on built-in mic and another on a USB audio interface.
 
 ## Local Development Setup
 

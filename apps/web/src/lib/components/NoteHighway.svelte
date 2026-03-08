@@ -10,17 +10,19 @@
     lookAhead?: number;
     /** Recently judged notes for visual feedback */
     recentJudgments?: Array<{ noteIndex: number; judgment: HitJudgment }>;
+    /** Minimum MIDI pitch to display (default: 28, bass E1) */
+    minPitch?: number;
+    /** Maximum MIDI pitch to display (default: 72, C5) */
+    maxPitch?: number;
   }
 
-  const { notes, currentTime, lookAhead = 4, recentJudgments = [] }: Props = $props();
+  const { notes, currentTime, lookAhead = 4, recentJudgments = [],
+          minPitch = 28, maxPitch = 72 }: Props = $props();
 
   let canvas: HTMLCanvasElement;
   let rafId: number;
 
-  // Bass guitar MIDI range: E1 (28) to C5 (72)
-  const MIN_PITCH = 28;
-  const MAX_PITCH = 72;
-  const PITCH_RANGE = MAX_PITCH - MIN_PITCH;
+  const PITCH_RANGE = $derived(maxPitch - minPitch);
 
   const COLORS = {
     perfect: '#00f5ff',
@@ -54,7 +56,7 @@
     // Draw horizontal grid lines for octaves
     ctx.strokeStyle = COLORS.grid;
     ctx.lineWidth = 1;
-    for (let midi = MIN_PITCH; midi <= MAX_PITCH; midi += 12) {
+    for (let midi = minPitch; midi <= maxPitch; midi += 12) {
       const y = pitchToY(midi, h);
       ctx.beginPath();
       ctx.moveTo(0, y);
@@ -136,8 +138,7 @@
   }
 
   function pitchToY(pitch: number, height: number): number {
-    // Higher pitches at top, lower at bottom
-    const normalized = (pitch - MIN_PITCH) / PITCH_RANGE;
+    const normalized = (pitch - minPitch) / PITCH_RANGE;
     return height * (1 - normalized);
   }
 

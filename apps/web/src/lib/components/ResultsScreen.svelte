@@ -6,11 +6,13 @@
     result: PerformanceResult;
     trackTitle: string;
     trackId?: string;
+    playerLabel?: string;
+    accentColor?: string;
     onReplay: () => void;
     onBack: () => void;
   }
 
-  const { result, trackTitle, trackId, onReplay, onBack }: Props = $props();
+  const { result, trackTitle, trackId, playerLabel, accentColor, onReplay, onBack }: Props = $props();
 
   function grade(accuracy: number): { letter: string; color: string } {
     if (accuracy >= 95) return { letter: 'S', color: '#00f5ff' };
@@ -28,6 +30,9 @@
   <GlassCard padding="lg">
     <div class="results">
       <h2 class="results-title">Performance Complete</h2>
+      {#if playerLabel}
+        <p class="player-name" style:color={accentColor ?? '#a0a0b0'}>{playerLabel}</p>
+      {/if}
       <p class="track-name">{trackTitle}</p>
 
       <div class="grade" style:color={g.color} style:text-shadow="0 0 30px {g.color}">
@@ -100,6 +105,12 @@
     font-size: 1.25rem;
     font-weight: 600;
     color: #a0a0b0;
+    margin-bottom: 0.25rem;
+  }
+
+  .player-name {
+    font-size: 0.875rem;
+    font-weight: 600;
     margin-bottom: 0.25rem;
   }
 

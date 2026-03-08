@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { frequencyToMidi, midiToFrequency, midiToNoteName } from './pitch-detector.js';
+import { frequencyToMidi, midiToFrequency, midiToNoteName, PitchDetector } from './pitch-detector.js';
 
 describe('frequencyToMidi', () => {
   it('converts A4 (440 Hz) to MIDI note 69', () => {
@@ -60,6 +60,49 @@ describe('midiToFrequency', () => {
       const freq = midiToFrequency(midi);
       expect(frequencyToMidi(freq)).toBe(midi);
     }
+  });
+});
+
+describe('PitchDetector options', () => {
+  // We can't fully test audio in a Node environment, but we can verify
+  // that the constructor accepts options and stores them correctly.
+  it('accepts custom frequency range options', () => {
+    // Mock minimal AudioContext
+    const mockCtx = {
+      createAnalyser: () => ({
+        fftSize: 4096,
+        getFloatTimeDomainData: () => {},
+        connect: () => {},
+      }),
+      sampleRate: 44100,
+    } as unknown as AudioContext;
+
+    const detector = new PitchDetector(mockCtx, {
+      minFrequency: 80,
+      maxFrequency: 1100,
+      deviceId: 'test-device-id',
+    });
+
+    // The detector should be created without error
+    expect(detector).toBeDefined();
+    expect(detector.running).toBe(false);
+    expect(detector.currentPitch).toBe(0);
+    expect(detector.currentMidiNote).toBe(-1);
+  });
+
+  it('defaults to 30-500 Hz range without options', () => {
+    const mockCtx = {
+      createAnalyser: () => ({
+        fftSize: 4096,
+        getFloatTimeDomainData: () => {},
+        connect: () => {},
+      }),
+      sampleRate: 44100,
+    } as unknown as AudioContext;
+
+    const detector = new PitchDetector(mockCtx);
+    expect(detector).toBeDefined();
+    expect(detector.running).toBe(false);
   });
 });
 

@@ -5,8 +5,10 @@ import { join } from 'node:path';
 import { downloadFile, uploadFile } from './storage.js';
 import { updateJob } from './job-manager.js';
 
+export type DemucsStemType = 'vocals' | 'drums' | 'bass' | 'other';
+
 export interface StemResult {
-  stemType: 'bass' | 'no_bass';
+  stemType: DemucsStemType;
   r2Key: string;
   fileSizeBytes: number;
 }
@@ -25,11 +27,10 @@ export async function runDemucs(
     updateJob(jobId, { status: 'downloading', progress: 10 });
     await downloadFile(r2Key, inputPath);
 
-    // Run Demucs: --two-stems bass produces bass + no_bass
+    // Run Demucs: 4-stem separation (vocals, drums, bass, other)
     updateJob(jobId, { status: 'processing', progress: 20 });
     await new Promise<void>((resolve, reject) => {
       const proc = spawn('demucs', [
-        '--two-stems', 'bass',
         '-n', 'htdemucs',
         '-o', outputDir,
         inputPath,
@@ -57,11 +58,13 @@ export async function runDemucs(
     });
 
     // Find output stems
-    // Demucs outputs to: outputDir/htdemucs/<track_name>/bass.wav and no_bass.wav
+    // Demucs 4-stem outputs to: outputDir/htdemucs/<track_name>/{vocals,drums,bass,other}.wav
     const modelDir = join(outputDir, 'htdemucs');
     const trackDirs = await readdir(modelDir);
     const stemDir = join(modelDir, trackDirs[0]!);
     const stemFiles = await readdir(stemDir);
+
+    const VALID_STEMS: Set<string> = new Set(['vocals', 'drums', 'bass', 'other']);
 
     // Upload stems to R2
     updateJob(jobId, { status: 'uploading', progress: 85 });
@@ -69,7 +72,9 @@ export async function runDemucs(
 
     for (const file of stemFiles) {
       if (!file.endsWith('.wav')) continue;
-      const stemType = file.replace('.wav', '') as 'bass' | 'no_bass';
+      const stemName = file.replace('.wav', '');
+      if (!VALID_STEMS.has(stemName)) continue;
+      const stemType = stemName as DemucsStemType;
       const filePath = join(stemDir, file);
       const r2StemKey = `tracks/${trackId}/stems/${stemType}.wav`;
 

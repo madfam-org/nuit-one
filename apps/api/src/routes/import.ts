@@ -8,7 +8,7 @@ import { runDemucs } from '../lib/demucs.js';
 import { runTranscription } from '../lib/transcription.js';
 import { createDb } from '@nuit-one/db';
 import { schema } from '@nuit-one/db';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 let _db: ReturnType<typeof createDb>;
 function getDb() {
@@ -105,14 +105,22 @@ importRoutes.post('/youtube', async (c) => {
         });
       }
 
-      // Step 5: Run Basic Pitch transcription on bass stem
-      const bassStem = await db.query.stems.findFirst({
-        where: and(eq(schema.stems.trackId, trackId), eq(schema.stems.stemType, 'bass')),
+      // Step 5: Run Basic Pitch transcription on all stems
+      const allStems = await db.query.stems.findMany({
+        where: eq(schema.stems.trackId, trackId),
       });
 
-      if (bassStem) {
-        const notes = await runTranscription(job.id, bassStem.r2Key);
-        await db.update(schema.stems).set({ midiData: notes }).where(eq(schema.stems.id, bassStem.id));
+      for (const stem of allStems) {
+        try {
+          updateJob(job.id, {
+            status: 'processing',
+            progress: 85 + (allStems.indexOf(stem) / allStems.length) * 10,
+          });
+          const notes = await runTranscription(job.id, stem.r2Key);
+          await db.update(schema.stems).set({ midiData: notes }).where(eq(schema.stems.id, stem.id));
+        } catch (err) {
+          console.warn(`Transcription failed for ${stem.stemType} stem (non-fatal):`, err);
+        }
       }
 
       // Mark track ready

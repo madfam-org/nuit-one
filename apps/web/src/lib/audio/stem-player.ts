@@ -18,6 +18,7 @@ interface StemState {
 
 export class StemPlayer {
   private ctx: AudioContext;
+  private _ownsContext: boolean;
   private stems = new Map<string, StemState>();
   private _isPlaying = false;
   private _startTime = 0;
@@ -32,8 +33,14 @@ export class StemPlayer {
   private _loopStart: number | null = null;
   private _loopEnd: number | null = null;
 
-  constructor() {
-    this.ctx = new AudioContext();
+  constructor(externalCtx?: AudioContext) {
+    if (externalCtx) {
+      this.ctx = externalCtx;
+      this._ownsContext = false;
+    } else {
+      this.ctx = new AudioContext();
+      this._ownsContext = true;
+    }
     this._reverbMasterGain = this.ctx.createGain();
     this._reverbMasterGain.gain.value = 0.3;
     this._reverbMasterGain.connect(this.ctx.destination);
@@ -289,7 +296,9 @@ export class StemPlayer {
   destroy(): void {
     this.stopSources();
     if (this._reverbConvolver) this._reverbConvolver.disconnect();
-    void this.ctx.close();
+    if (this._ownsContext) {
+      void this.ctx.close();
+    }
   }
 
   private stopSources(): void {

@@ -12,8 +12,9 @@ interface StemInfo {
   reverbAmount: number;
 }
 
-export function createPlayerStore() {
+export function createPlayerStore(externalCtx?: AudioContext) {
   let player: StemPlayer | null = null;
+  const sharedCtx = externalCtx;
   let isPlaying = $state(false);
   let currentTime = $state(0);
   let duration = $state(0);
@@ -61,10 +62,10 @@ export function createPlayerStore() {
     get loopEnd() { return loopEnd; },
     get isLooping() { return isLooping; },
 
-    async loadStems(stemUrls: Record<string, string>, bassKaraokeMode = true) {
+    async loadStems(stemUrls: Record<string, string>) {
       loading = true;
       player?.destroy();
-      player = new StemPlayer();
+      player = new StemPlayer(sharedCtx);
 
       try {
         for (const [name, url] of Object.entries(stemUrls)) {
@@ -84,15 +85,6 @@ export function createPlayerStore() {
           eqHigh: 0,
           reverbAmount: 0,
         }));
-
-        if (bassKaraokeMode) {
-          const bassIdx = stems.findIndex((s) => s.name === 'bass');
-          if (bassIdx >= 0) {
-            stems[bassIdx]!.volume = 0;
-            stems[bassIdx]!.muted = true;
-            player.mute('bass');
-          }
-        }
       } finally {
         loading = false;
       }

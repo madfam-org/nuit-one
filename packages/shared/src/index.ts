@@ -28,6 +28,9 @@ export type {
   HitJudgment,
   PerformanceResult,
   SavePerformanceRequest,
+  ChordEvent,
+  DifficultyTier,
+  TrackAnalysis,
 } from './types/index.js';
 
 export {
@@ -45,4 +48,11 @@ export {
   STEM_TYPES,
   HIT_WINDOWS,
   HIT_SCORES,
+  PLAYABLE_INSTRUMENTS,
+  INSTRUMENT_FREQUENCY_RANGES,
+  INSTRUMENT_MIDI_RANGES,
+  INSTRUMENT_LABELS,
+  INSTRUMENT_COLORS,
 } from './constants.js';
+
+export type { PlayableInstrument } from './constants.js';

@@ -47,3 +47,9 @@ export type {
   PerformanceResult,
   SavePerformanceRequest,
 } from './game.js';
+
+export type {
+  ChordEvent,
+  DifficultyTier,
+  TrackAnalysis,
+} from './analysis.js';

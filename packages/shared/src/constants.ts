@@ -32,6 +32,36 @@ export const TRACK_STATUSES = [
 
 export const STEM_TYPES = ['bass', 'no_bass', 'vocals', 'drums', 'other'] as const;
 
+/** Playable instruments for karaoke mode */
+export const PLAYABLE_INSTRUMENTS = ['bass', 'vocals', 'drums', 'other'] as const;
+export type PlayableInstrument = (typeof PLAYABLE_INSTRUMENTS)[number];
+
+/** Pitch detection frequency ranges per instrument (Hz) */
+export const INSTRUMENT_FREQUENCY_RANGES: Record<PlayableInstrument, { min: number; max: number }> = {
+  bass:   { min: 30,  max: 500  },
+  vocals: { min: 80,  max: 1100 },
+  drums:  { min: 60,  max: 500  },
+  other:  { min: 27,  max: 4200 },
+} as const;
+
+/** NoteHighway MIDI pitch display ranges per instrument */
+export const INSTRUMENT_MIDI_RANGES: Record<PlayableInstrument, { min: number; max: number }> = {
+  bass:   { min: 28, max: 72  },
+  vocals: { min: 36, max: 84  },
+  drums:  { min: 35, max: 81  },
+  other:  { min: 21, max: 108 },
+} as const;
+
+/** Display labels for instruments */
+export const INSTRUMENT_LABELS: Record<PlayableInstrument, string> = {
+  bass: 'Bass', vocals: 'Vocals', drums: 'Drums', other: 'Guitar / Keys',
+} as const;
+
+/** Neon colors for each instrument (Nuit Glass theme) */
+export const INSTRUMENT_COLORS: Record<PlayableInstrument, string> = {
+  bass: '#8b5cf6', vocals: '#00f5ff', drums: '#f59e0b', other: '#00ff88',
+} as const;
+
 /** Hit timing windows in milliseconds */
 export const HIT_WINDOWS: Readonly<Record<HitResult, number>> = {
   perfect: 25,

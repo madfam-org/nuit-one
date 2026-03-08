@@ -6,6 +6,7 @@ import {
   stems,
   performances,
   calibrationProfiles,
+  trackAnalysis,
 } from './index.js';
 import { createDb, schema } from '../index.js';
 
@@ -24,12 +25,13 @@ function getInlineForeignKeys(table: object): unknown[] {
 // ---------------------------------------------------------------------------
 
 describe('schema barrel exports', () => {
-  it('exports all five tables', () => {
+  it('exports all six tables', () => {
     expect(projects).toBeDefined();
     expect(tracks).toBeDefined();
     expect(stems).toBeDefined();
     expect(performances).toBeDefined();
     expect(calibrationProfiles).toBeDefined();
+    expect(trackAnalysis).toBeDefined();
   });
 
   it('exports createDb from the package entry point', () => {
@@ -179,6 +181,29 @@ describe('calibrationProfiles table columns', () => {
   });
 });
 
+describe('trackAnalysis table columns', () => {
+  const cols = getTableColumns(trackAnalysis);
+
+  it('has the expected columns', () => {
+    expect(Object.keys(cols).sort()).toEqual(
+      [
+        'id',
+        'trackId',
+        'key',
+        'bpmDetected',
+        'chords',
+        'difficultyTier',
+        'analysisVersion',
+        'createdAt',
+      ].sort(),
+    );
+  });
+
+  it('has trackId as not null', () => {
+    expect(cols.trackId.notNull).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Foreign key relationships
 // ---------------------------------------------------------------------------
@@ -225,5 +250,14 @@ describe('foreign key relationships', () => {
   it('calibrationProfiles has no foreign keys', () => {
     const fks = getInlineForeignKeys(calibrationProfiles);
     expect(fks).toHaveLength(0);
+  });
+
+  it('trackAnalysis references tracks via trackId (1 FK)', () => {
+    const cols = getTableColumns(trackAnalysis);
+    expect(cols.trackId).toBeDefined();
+    expect(cols.trackId.notNull).toBe(true);
+
+    const fks = getInlineForeignKeys(trackAnalysis);
+    expect(fks).toHaveLength(1);
   });
 });

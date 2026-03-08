@@ -7,15 +7,20 @@
 
   interface Props {
     stemUrls: Record<string, string>;
-    bassKaraokeMode?: boolean;
+    muteStem?: string;
   }
 
-  const { stemUrls, bassKaraokeMode = true }: Props = $props();
+  const { stemUrls, muteStem }: Props = $props();
 
   const player = createPlayerStore();
 
   $effect(() => {
-    void player.loadStems(stemUrls, bassKaraokeMode);
+    void (async () => {
+      await player.loadStems(stemUrls);
+      if (muteStem) {
+        player.toggleMute(muteStem);
+      }
+    })();
 
     return () => {
       player.destroy();
@@ -37,10 +42,9 @@
       <div class="divider"></div>
       <StemMixer {player} />
 
-      {#if bassKaraokeMode}
+      {#if muteStem}
         <div class="karaoke-hint">
-          <span class="hint-icon">🎸</span>
-          <span class="hint-text">Bass Karaoke Mode — plug in your bass and play along!</span>
+          <span class="hint-text">Karaoke Mode — {muteStem} stem muted. Play along!</span>
         </div>
       {/if}
     </div>

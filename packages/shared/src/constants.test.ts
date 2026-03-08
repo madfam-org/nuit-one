@@ -14,6 +14,11 @@ import {
   STEM_TYPES,
   HIT_WINDOWS,
   HIT_SCORES,
+  PLAYABLE_INSTRUMENTS,
+  INSTRUMENT_FREQUENCY_RANGES,
+  INSTRUMENT_MIDI_RANGES,
+  INSTRUMENT_LABELS,
+  INSTRUMENT_COLORS,
 } from './constants.js';
 
 describe('constants', () => {
@@ -275,6 +280,76 @@ describe('constants', () => {
       // A timing offset of 200ms exceeds good, so it is a miss
       expect(200).toBeGreaterThan(HIT_WINDOWS.good);
       expect(200).toBeLessThanOrEqual(HIT_WINDOWS.miss);
+    });
+  });
+
+  describe('PLAYABLE_INSTRUMENTS', () => {
+    it('has 4 entries', () => {
+      expect(PLAYABLE_INSTRUMENTS).toHaveLength(4);
+    });
+
+    it('contains bass, vocals, drums, other', () => {
+      expect(PLAYABLE_INSTRUMENTS).toContain('bass');
+      expect(PLAYABLE_INSTRUMENTS).toContain('vocals');
+      expect(PLAYABLE_INSTRUMENTS).toContain('drums');
+      expect(PLAYABLE_INSTRUMENTS).toContain('other');
+    });
+
+    it('has no duplicate entries', () => {
+      const unique = new Set(PLAYABLE_INSTRUMENTS);
+      expect(unique.size).toBe(PLAYABLE_INSTRUMENTS.length);
+    });
+  });
+
+  describe('INSTRUMENT_FREQUENCY_RANGES', () => {
+    it('has valid min < max for all instruments', () => {
+      for (const inst of PLAYABLE_INSTRUMENTS) {
+        const range = INSTRUMENT_FREQUENCY_RANGES[inst];
+        expect(range.min).toBeGreaterThan(0);
+        expect(range.max).toBeGreaterThan(range.min);
+      }
+    });
+
+    it('bass range covers 30-500 Hz', () => {
+      expect(INSTRUMENT_FREQUENCY_RANGES.bass.min).toBe(30);
+      expect(INSTRUMENT_FREQUENCY_RANGES.bass.max).toBe(500);
+    });
+
+    it('vocals range covers 80-1100 Hz', () => {
+      expect(INSTRUMENT_FREQUENCY_RANGES.vocals.min).toBe(80);
+      expect(INSTRUMENT_FREQUENCY_RANGES.vocals.max).toBe(1100);
+    });
+  });
+
+  describe('INSTRUMENT_MIDI_RANGES', () => {
+    it('has valid min < max for all instruments', () => {
+      for (const inst of PLAYABLE_INSTRUMENTS) {
+        const range = INSTRUMENT_MIDI_RANGES[inst];
+        expect(range.min).toBeGreaterThanOrEqual(0);
+        expect(range.max).toBeGreaterThan(range.min);
+        expect(range.max).toBeLessThanOrEqual(127);
+      }
+    });
+
+    it('bass MIDI range is 28-72', () => {
+      expect(INSTRUMENT_MIDI_RANGES.bass).toEqual({ min: 28, max: 72 });
+    });
+  });
+
+  describe('INSTRUMENT_LABELS', () => {
+    it('has a label for every playable instrument', () => {
+      for (const inst of PLAYABLE_INSTRUMENTS) {
+        expect(INSTRUMENT_LABELS[inst]).toBeTruthy();
+        expect(typeof INSTRUMENT_LABELS[inst]).toBe('string');
+      }
+    });
+  });
+
+  describe('INSTRUMENT_COLORS', () => {
+    it('has a hex color for every playable instrument', () => {
+      for (const inst of PLAYABLE_INSTRUMENTS) {
+        expect(INSTRUMENT_COLORS[inst]).toMatch(/^#[0-9a-f]{6}$/i);
+      }
     });
   });
 
