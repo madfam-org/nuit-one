@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   cookies.set('nuit_session', 'dev-session-token', {
     path: '/',
     httpOnly: true,
-    secure: false, // true in production
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7, // 1 week
   });

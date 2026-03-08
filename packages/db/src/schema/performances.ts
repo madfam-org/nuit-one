@@ -8,7 +8,7 @@ export const performances = pgTable('performances', {
     .notNull()
     .references(() => tracks.id, { onDelete: 'cascade' }),
   userId: uuid('user_id').notNull(),
-  stemId: uuid('stem_id').references(() => stems.id),
+  stemId: uuid('stem_id').references(() => stems.id, { onDelete: 'set null' }),
   scoreTiming: real('score_timing'),
   scoreDynamics: real('score_dynamics'),
   scorePitch: real('score_pitch'),

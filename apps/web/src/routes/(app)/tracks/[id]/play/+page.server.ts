@@ -5,11 +5,23 @@ import { eq, and } from 'drizzle-orm';
 import type { NoteEvent } from '@nuit-one/shared';
 import type { PageServerLoad } from './$types';
 
+function validateNotes(data: unknown): NoteEvent[] {
+  if (!Array.isArray(data)) return [];
+  return data.filter(
+    (n): n is NoteEvent =>
+      typeof n === 'object' && n !== null &&
+      typeof n.startTime === 'number' &&
+      typeof n.duration === 'number' &&
+      typeof n.pitch === 'number' &&
+      typeof n.velocity === 'number'
+  );
+}
+
 export const load: PageServerLoad = async ({ params, locals }) => {
   if (!locals.userId) throw error(401, 'Unauthorized');
 
   const track = await db.query.tracks.findFirst({
-    where: eq(schema.tracks.id, params.id),
+    where: and(eq(schema.tracks.id, params.id), eq(schema.tracks.userId, locals.userId)),
   });
 
   if (!track) throw error(404, 'Track not found');
@@ -26,8 +38,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   if (!backingStem) throw error(400, 'No backing track stem found');
 
-  // Get note data from bass stem
-  const notes: NoteEvent[] = (bassStem?.midiData as NoteEvent[] | null) ?? [];
+  // Get note data from bass stem (validated)
+  const notes = validateNotes(bassStem?.midiData);
 
   // Build stem URLs
   const stemUrls: Record<string, string> = {};

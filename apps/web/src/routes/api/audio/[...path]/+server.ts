@@ -14,9 +14,12 @@ export const GET: RequestHandler = async ({ params, locals }) => {
   const r2Key = params.path;
   if (!r2Key) throw error(400, 'Missing path');
 
-  // Only allow audio file paths
+  // Only allow audio file paths — block traversal
   if (!r2Key.startsWith('tracks/')) {
     throw error(403, 'Forbidden path');
+  }
+  if (r2Key.includes('..') || r2Key.includes('\0')) {
+    throw error(403, 'Invalid path');
   }
 
   if (isLocalStorage()) {

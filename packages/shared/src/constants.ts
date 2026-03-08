@@ -27,6 +27,7 @@ export const SUPPORTED_MIME_TYPES = [
 
 export const TRACK_STATUSES = [
   'pending_upload', 'uploaded', 'processing', 'ready', 'error',
+  'needs_parts', 'in_progress', 'delivered', 'approved',
 ] as const;
 
 export const STEM_TYPES = ['bass', 'no_bass', 'vocals', 'drums', 'other'] as const;

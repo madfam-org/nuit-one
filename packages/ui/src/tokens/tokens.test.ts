@@ -137,9 +137,9 @@ describe('typography', () => {
       );
       for (let i = 1; i < ordered.length; i++) {
         expect(
-          ordered[i],
-          `fontSize ${expectedKeys[i]} (${ordered[i]}) should be >= ${expectedKeys[i - 1]} (${ordered[i - 1]})`,
-        ).toBeGreaterThanOrEqual(ordered[i - 1]);
+          ordered[i]!,
+          `fontSize ${expectedKeys[i]} (${ordered[i]!}) should be >= ${expectedKeys[i - 1]} (${ordered[i - 1]!})`,
+        ).toBeGreaterThanOrEqual(ordered[i - 1]!);
       }
     });
   });
@@ -165,7 +165,7 @@ describe('typography', () => {
         (k) => Number(typography.fontWeight[k]),
       );
       for (let i = 1; i < ordered.length; i++) {
-        expect(ordered[i]).toBeGreaterThan(ordered[i - 1]);
+        expect(ordered[i]!).toBeGreaterThan(ordered[i - 1]!);
       }
     });
   });
@@ -210,8 +210,8 @@ describe('spacing', () => {
 
   it('spacing values increase with key', () => {
     for (let i = 1; i < expectedKeys.length; i++) {
-      const prev = expectedKeys[i - 1];
-      const curr = expectedKeys[i];
+      const prev = expectedKeys[i - 1]!;
+      const curr = expectedKeys[i]!;
       const prevVal = prev === 0 ? 0 : parseFloat(spacing[prev]);
       const currVal = parseFloat(spacing[curr]);
       expect(
@@ -294,7 +294,7 @@ describe('effects', () => {
     });
 
     it('durations increase from fast to slow', () => {
-      const extractMs = (v: string) => parseInt(v.match(/(\d+)ms/)![1], 10);
+      const extractMs = (v: string) => parseInt(v.match(/(\d+)ms/)![1]!, 10);
       const fast = extractMs(effects.transition.fast);
       const base = extractMs(effects.transition.base);
       const slow = extractMs(effects.transition.slow);

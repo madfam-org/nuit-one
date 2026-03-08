@@ -184,8 +184,8 @@ describe('constants', () => {
       expect(TRACK_STATUSES).toContain('error');
     });
 
-    it('has exactly 5 statuses', () => {
-      expect(TRACK_STATUSES).toHaveLength(5);
+    it('has exactly 9 statuses', () => {
+      expect(TRACK_STATUSES).toHaveLength(9);
     });
 
     it('has no duplicate entries', () => {

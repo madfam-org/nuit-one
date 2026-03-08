@@ -8,9 +8,17 @@ import { runDemucs } from '../lib/demucs.js';
 import { runTranscription } from '../lib/transcription.js';
 import { createDb } from '@nuit-one/db';
 import { schema } from '@nuit-one/db';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
-const db = createDb(process.env.DATABASE_URL ?? '');
+let _db: ReturnType<typeof createDb>;
+function getDb() {
+  if (!_db) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error('DATABASE_URL environment variable is required');
+    _db = createDb(url);
+  }
+  return _db;
+}
 
 export const importRoutes = new Hono();
 
@@ -38,6 +46,7 @@ importRoutes.post('/youtube', async (c) => {
       // Step 2: Create project + track in DB
       updateJob(job.id, { status: 'processing', progress: 15 });
 
+      const db = getDb();
       let project = await db.query.projects.findFirst({
         where: eq(schema.projects.workspaceId, auth.workspaceId!),
       });
@@ -54,6 +63,8 @@ importRoutes.post('/youtube', async (c) => {
         project = newProject!;
       }
 
+      const safeTitle = ytResult.title.replace(/[/\\:*?"<>|]/g, '_').slice(0, 200);
+
       const [track] = await db
         .insert(schema.tracks)
         .values({
@@ -62,14 +73,14 @@ importRoutes.post('/youtube', async (c) => {
           title: ytResult.title,
           instrument: 'full_mix',
           status: 'uploaded',
-          originalFilename: `${ytResult.title}.wav`,
+          originalFilename: `${safeTitle}.wav`,
           fileSizeBytes: ytResult.fileSizeBytes,
           contentType: 'audio/wav',
         })
         .returning();
 
       const trackId = track!.id;
-      const r2Key = `tracks/${trackId}/original/${ytResult.title}.wav`;
+      const r2Key = `tracks/${trackId}/original/${safeTitle}.wav`;
 
       // Step 3: Upload WAV to storage
       updateJob(job.id, { status: 'uploading', progress: 20 });
@@ -96,7 +107,7 @@ importRoutes.post('/youtube', async (c) => {
 
       // Step 5: Run Basic Pitch transcription on bass stem
       const bassStem = await db.query.stems.findFirst({
-        where: eq(schema.stems.trackId, trackId),
+        where: and(eq(schema.stems.trackId, trackId), eq(schema.stems.stemType, 'bass')),
       });
 
       if (bassStem) {
@@ -108,6 +119,7 @@ importRoutes.post('/youtube', async (c) => {
       await db.update(schema.tracks).set({ status: 'ready' }).where(eq(schema.tracks.id, trackId));
       updateJob(job.id, { status: 'complete', progress: 100 });
     } catch (err) {
+      console.error(`Job ${job.id} failed:`, err);
       const message = err instanceof Error ? err.message : 'Import failed';
       updateJob(job.id, { status: 'error', error: message });
     } finally {

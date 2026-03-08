@@ -33,6 +33,7 @@
   let accuracy = $state(0);
   let results = $state<PerformanceResult | null>(null);
   let recentJudgments = $state<Array<{ noteIndex: number; judgment: HitJudgment }>>([]);
+  let micError = $state(false);
 
   let scoreTickId: number | null = null;
 
@@ -72,6 +73,7 @@
       await pitchDetector?.start();
     } catch (err) {
       console.warn('Mic access denied or unavailable:', err);
+      micError = true;
     }
 
     // Start scoring loop
@@ -183,6 +185,9 @@
 
   {:else if gameState === 'playing'}
     <div class="playing-layout">
+      {#if micError}
+        <div class="mic-warning">Microphone unavailable — scoring disabled</div>
+      {/if}
       <div class="score-area">
         <ScoreDisplay {score} {combo} {lastJudgment} {accuracy} />
       </div>
@@ -321,6 +326,16 @@
     font-family: var(--font-mono, monospace);
     font-size: 0.75rem;
     color: #606070;
+  }
+
+  .mic-warning {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    text-align: center;
   }
 </style>
 

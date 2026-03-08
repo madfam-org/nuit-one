@@ -37,7 +37,7 @@ export interface Track {
 export interface Stem {
   readonly id: string;
   readonly trackId: string;
-  readonly stemType: StemType | null;
+  readonly stemType: StemType;
   readonly r2Key: string;
   readonly fileSizeBytes: number | null;
   readonly durationSeconds: number | null;

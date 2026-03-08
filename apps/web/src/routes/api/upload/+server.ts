@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
   }
 
   // Create track record
-  const title = filename.replace(/\.[^.]+$/, '');
+  const title = filename.replace(/\.[^.]+$/, '').replace(/[^\w\s\-().]/g, '').slice(0, 200) || 'Untitled';
   const [track] = await db
     .insert(schema.tracks)
     .values({

@@ -8,7 +8,7 @@ export const stems = pgTable('stems', {
     .references(() => tracks.id, { onDelete: 'cascade' }),
   stemType: text('stem_type', {
     enum: ['bass', 'no_bass', 'vocals', 'drums', 'other'],
-  }),
+  }).notNull(),
   r2Key: text('r2_key').notNull(),
   fileSizeBytes: bigint('file_size_bytes', { mode: 'number' }),
   durationSeconds: real('duration_seconds'),

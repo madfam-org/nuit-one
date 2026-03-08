@@ -114,6 +114,10 @@ describe('stems table columns', () => {
   it('has sample_rate defaulting to 44100', () => {
     expect(cols.sampleRate.hasDefault).toBe(true);
   });
+
+  it('has stem_type as not null', () => {
+    expect(cols.stemType.notNull).toBe(true);
+  });
 });
 
 describe('performances table columns', () => {

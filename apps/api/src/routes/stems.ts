@@ -4,9 +4,17 @@ import { runDemucs } from '../lib/demucs.js';
 import { runTranscription } from '../lib/transcription.js';
 import { createDb } from '@nuit-one/db';
 import { schema } from '@nuit-one/db';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
-const db = createDb(process.env.DATABASE_URL ?? '');
+let _db: ReturnType<typeof createDb>;
+function getDb() {
+  if (!_db) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error('DATABASE_URL environment variable is required');
+    _db = createDb(url);
+  }
+  return _db;
+}
 
 export const stemRoutes = new Hono();
 
@@ -18,6 +26,7 @@ stemRoutes.post('/split', async (c) => {
   if (!trackId) return c.json({ error: 'Missing trackId' }, 400);
 
   // Verify track exists and is uploaded
+  const db = getDb();
   const track = await db.query.tracks.findFirst({
     where: eq(schema.tracks.id, trackId),
   });
@@ -56,6 +65,7 @@ stemRoutes.post('/split', async (c) => {
       await db.update(schema.tracks).set({ status: 'ready' }).where(eq(schema.tracks.id, trackId));
       updateJob(job.id, { status: 'complete', progress: 100 });
     } catch (err) {
+      console.error(`Job ${job.id} failed:`, err);
       const message = err instanceof Error ? err.message : 'Processing failed';
       updateJob(job.id, { status: 'error', error: message });
       await db.update(schema.tracks).set({ status: 'error' }).where(eq(schema.tracks.id, trackId));
@@ -80,9 +90,10 @@ stemRoutes.post('/transcribe', async (c) => {
 
   if (!trackId) return c.json({ error: 'Missing trackId' }, 400);
 
+  const db = getDb();
   // Find the bass stem for this track
   const bassStem = await db.query.stems.findFirst({
-    where: eq(schema.stems.trackId, trackId),
+    where: and(eq(schema.stems.trackId, trackId), eq(schema.stems.stemType, 'bass')),
   });
 
   if (!bassStem) return c.json({ error: 'No bass stem found' }, 404);
@@ -102,6 +113,7 @@ stemRoutes.post('/transcribe', async (c) => {
 
       updateJob(job.id, { status: 'complete', progress: 100 });
     } catch (err) {
+      console.error(`Job ${job.id} failed:`, err);
       const message = err instanceof Error ? err.message : 'Transcription failed';
       updateJob(job.id, { status: 'error', error: message });
     }

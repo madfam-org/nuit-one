@@ -1,7 +1,8 @@
 import { json, error } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+const API_URL = env.API_URL ?? 'http://localhost:3001';
 
 export const GET: RequestHandler = async ({ params, locals }) => {
   if (!locals.accessToken) throw error(401, 'Unauthorized');
