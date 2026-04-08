@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nuit-one-web
+  namespace: nuit-one
+spec:
+  type: ClusterIP
+  selector:
+    app: nuit-one-web
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
