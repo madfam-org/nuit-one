@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { ScoringEngine } from './scoring-engine.js';
 import type { NoteEvent } from '@nuit-one/shared';
+import { describe, expect, it } from 'vitest';
+import { ScoringEngine } from './scoring-engine.js';
 
 function makeNotes(count: number, startOffset = 0): NoteEvent[] {
   return Array.from({ length: count }, (_, i) => ({
@@ -50,9 +50,7 @@ describe('ScoringEngine', () => {
     });
 
     it('judges perfect hit (exact timing and pitch)', () => {
-      const notes: NoteEvent[] = [
-        { startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 },
-      ];
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
       const engine = new ScoringEngine(notes);
       // Note center is at 1.25s, hit within 25ms
       const result = engine.evaluate(1.25, 40);
@@ -61,9 +59,7 @@ describe('ScoringEngine', () => {
     });
 
     it('judges great hit (timing within 50ms, pitch within 1 semitone)', () => {
-      const notes: NoteEvent[] = [
-        { startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 },
-      ];
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
       const engine = new ScoringEngine(notes);
       // Hit 40ms off center with pitch 1 semitone away
       const result = engine.evaluate(1.25 + 0.04, 41);
@@ -72,9 +68,7 @@ describe('ScoringEngine', () => {
     });
 
     it('judges good hit (timing within 100ms)', () => {
-      const notes: NoteEvent[] = [
-        { startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 },
-      ];
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
       const engine = new ScoringEngine(notes);
       // Hit 80ms off center
       const result = engine.evaluate(1.25 + 0.08, 42);
@@ -83,9 +77,7 @@ describe('ScoringEngine', () => {
     });
 
     it('does not re-hit already scored notes', () => {
-      const notes: NoteEvent[] = [
-        { startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 },
-      ];
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
       const engine = new ScoringEngine(notes);
       const first = engine.evaluate(1.25, 40);
       expect(first).not.toBeNull();
@@ -118,9 +110,7 @@ describe('ScoringEngine', () => {
     });
 
     it('marks notes as missed when past timing window', () => {
-      const notes: NoteEvent[] = [
-        { startTime: 0.0, duration: 0.5, pitch: 40, velocity: 100 },
-      ];
+      const notes: NoteEvent[] = [{ startTime: 0.0, duration: 0.5, pitch: 40, velocity: 100 }];
       const engine = new ScoringEngine(notes);
       // Note ends at 0.5s, check at 0.7s (200ms past, beyond 100ms window)
       const misses = engine.checkMisses(0.7);
@@ -139,9 +129,7 @@ describe('ScoringEngine', () => {
     });
 
     it('does not double-miss already scored notes', () => {
-      const notes: NoteEvent[] = [
-        { startTime: 0.0, duration: 0.5, pitch: 40, velocity: 100 },
-      ];
+      const notes: NoteEvent[] = [{ startTime: 0.0, duration: 0.5, pitch: 40, velocity: 100 }];
       const engine = new ScoringEngine(notes);
       engine.evaluate(0.25, 40); // hit note
       const misses = engine.checkMisses(5.0);
@@ -201,6 +189,69 @@ describe('ScoringEngine', () => {
       expect(results.perfectCount).toBe(0);
       expect(results.missCount).toBe(0);
       expect(results.accuracy).toBe(0);
+    });
+  });
+
+  describe('dynamics scoring', () => {
+    it('returns perfect dynamics score when velocity matches exactly', () => {
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
+      const engine = new ScoringEngine(notes);
+      engine.evaluate(1.25, 40, 100); // exact velocity match
+      const results = engine.getResults();
+      expect(results.dynamicsScore).toBe(100);
+    });
+
+    it('returns reduced dynamics score when velocity differs', () => {
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
+      const engine = new ScoringEngine(notes);
+      engine.evaluate(1.25, 40, 50); // velocity off by 50
+      const results = engine.getResults();
+      expect(results.dynamicsScore).toBeLessThan(100);
+      expect(results.dynamicsScore).toBeGreaterThan(0);
+    });
+
+    it('does not count misses in dynamics score', () => {
+      const engine = new ScoringEngine(makeNotes(3));
+      engine.evaluate(0.25, 40, 100); // hit note 0 with perfect velocity
+      engine.checkMisses(10.0); // miss notes 1, 2
+      const results = engine.getResults();
+      // Only the one perfect hit should count
+      expect(results.dynamicsScore).toBe(100);
+    });
+
+    it('returns 0 dynamics score when no notes hit', () => {
+      const engine = new ScoringEngine(makeNotes(3));
+      engine.checkMisses(10.0);
+      const results = engine.getResults();
+      expect(results.dynamicsScore).toBe(0);
+    });
+
+    it('averages dynamics across multiple hits', () => {
+      const notes: NoteEvent[] = [
+        { startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 },
+        { startTime: 2.0, duration: 0.5, pitch: 41, velocity: 100 },
+      ];
+      const engine = new ScoringEngine(notes);
+      engine.evaluate(1.25, 40, 100); // perfect velocity
+      engine.evaluate(2.25, 41, 0); // worst velocity
+      const results = engine.getResults();
+      // Average of 100% and ~21% (1 - 100/127)
+      expect(results.dynamicsScore).toBeGreaterThan(40);
+      expect(results.dynamicsScore).toBeLessThan(70);
+    });
+
+    it('includes dynamicsScore in getResults', () => {
+      const engine = new ScoringEngine([]);
+      const results = engine.getResults();
+      expect(results).toHaveProperty('dynamicsScore');
+    });
+
+    it('includes velocityDelta in NoteJudgment', () => {
+      const notes: NoteEvent[] = [{ startTime: 1.0, duration: 0.5, pitch: 40, velocity: 100 }];
+      const engine = new ScoringEngine(notes);
+      const judgment = engine.evaluate(1.25, 40, 80);
+      expect(judgment).not.toBeNull();
+      expect(judgment!.velocityDelta).toBe(20);
     });
   });
 

@@ -4,35 +4,35 @@ export const ANALYSIS_VERSION = '1.0.0';
 
 // Major chord templates (root, 3rd, 5th positions in chroma)
 const CHORD_TEMPLATES: Record<string, number[]> = {
-  'C':   [1,0,0,0,1,0,0,1,0,0,0,0],
-  'C#':  [0,1,0,0,0,1,0,0,1,0,0,0],
-  'D':   [0,0,1,0,0,0,1,0,0,1,0,0],
-  'D#':  [0,0,0,1,0,0,0,1,0,0,1,0],
-  'E':   [0,0,0,0,1,0,0,0,1,0,0,1],
-  'F':   [1,0,0,0,0,1,0,0,0,1,0,0],
-  'F#':  [0,1,0,0,0,0,1,0,0,0,1,0],
-  'G':   [0,0,1,0,0,0,0,1,0,0,0,1],
-  'G#':  [1,0,0,1,0,0,0,0,1,0,0,0],
-  'A':   [0,1,0,0,1,0,0,0,0,1,0,0],
-  'A#':  [0,0,1,0,0,1,0,0,0,0,1,0],
-  'B':   [0,0,0,1,0,0,1,0,0,0,0,1],
-  'Cm':  [1,0,0,1,0,0,0,1,0,0,0,0],
-  'C#m': [0,1,0,0,1,0,0,0,1,0,0,0],
-  'Dm':  [0,0,1,0,0,1,0,0,0,1,0,0],
-  'D#m': [0,0,0,1,0,0,1,0,0,0,1,0],
-  'Em':  [0,0,0,0,1,0,0,1,0,0,0,1],
-  'Fm':  [1,0,0,0,0,1,0,0,1,0,0,0],
-  'F#m': [0,1,0,0,0,0,1,0,0,1,0,0],
-  'Gm':  [0,0,1,0,0,0,0,1,0,0,0,1],
-  'G#m': [1,0,0,1,0,0,0,0,1,0,0,0],
-  'Am':  [0,1,0,0,1,0,0,0,0,1,0,0],
-  'A#m': [0,0,1,0,0,1,0,0,0,0,1,0],
-  'Bm':  [0,0,0,1,0,0,1,0,0,0,0,1],
+  C: [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+  'C#': [0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  D: [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+  'D#': [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+  E: [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+  F: [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+  'F#': [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+  G: [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+  'G#': [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+  A: [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+  'A#': [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+  B: [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
+  Cm: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  'C#m': [0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+  Dm: [0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+  'D#m': [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0],
+  Em: [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+  Fm: [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  'F#m': [0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+  Gm: [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+  'G#m': [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+  Am: [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+  'A#m': [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+  Bm: [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
 };
 
 // Krumhansl-Schmuckler key profiles
 const MAJOR_PROFILE = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
-const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -186,8 +186,8 @@ function detectBpm(samples: Float32Array, sampleRate: number): number {
   }
 
   // Autocorrelation on onset envelope
-  const minLag = Math.floor((60 / 200) * sampleRate / hopSize); // 200 BPM max
-  const maxLag = Math.floor((60 / 60) * sampleRate / hopSize);  // 60 BPM min
+  const minLag = Math.floor(((60 / 200) * sampleRate) / hopSize); // 200 BPM max
+  const maxLag = Math.floor(((60 / 60) * sampleRate) / hopSize); // 60 BPM min
 
   let bestLag = minLag;
   let bestCorr = -Infinity;
@@ -218,7 +218,7 @@ function detectBpm(samples: Float32Array, sampleRate: number): number {
  * @returns Detected chords, key, and BPM
  */
 export function analyzeAudio(samples: Float32Array, sampleRate: number): AnalysisResult {
-  const hopSize = Math.floor(sampleRate * 0.5);  // 0.5-second hop for chord detection
+  const hopSize = Math.floor(sampleRate * 0.5); // 0.5-second hop for chord detection
   const frameSize = Math.floor(sampleRate * 1.0); // 1-second analysis window
   const numFrames = Math.floor((samples.length - frameSize) / hopSize);
 
@@ -236,7 +236,8 @@ export function analyzeAudio(samples: Float32Array, sampleRate: number): Analysi
     if (chord !== lastChord && lastChord) {
       const time = chordStart / sampleRate;
       const duration = (f * hopSize - chordStart) / sampleRate;
-      if (duration > 0.25) { // Filter out very short chord detections
+      if (duration > 0.25) {
+        // Filter out very short chord detections
         chords.push({ time, duration, label: lastChord });
         chordCounts[lastChord] = (chordCounts[lastChord] || 0) + 1;
       }

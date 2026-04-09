@@ -4,6 +4,7 @@ declare global {
       userId?: string;
       workspaceId?: string;
       accessToken?: string;
+      roles?: string[];
     }
     interface PageData {
       user?: {

@@ -11,11 +11,21 @@ let sessionType = $state<SessionType>('idle');
 
 export function getSessionStore() {
   return {
-    get activePlayer() { return activePlayer; },
-    get activeTrackId() { return activeTrackId; },
-    get activeProjectId() { return activeProjectId; },
-    get activeTrackTitle() { return activeTrackTitle; },
-    get sessionType() { return sessionType; },
+    get activePlayer() {
+      return activePlayer;
+    },
+    get activeTrackId() {
+      return activeTrackId;
+    },
+    get activeProjectId() {
+      return activeProjectId;
+    },
+    get activeTrackTitle() {
+      return activeTrackTitle;
+    },
+    get sessionType() {
+      return sessionType;
+    },
 
     /** Create a new player backed by the shared AudioContext */
     createPlayer(): PlayerStore {

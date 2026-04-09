@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { NeonBadge } from '@nuit-one/ui';
+  
   import type { DifficultyTier } from '@nuit-one/shared';
+import { NeonBadge } from '@nuit-one/ui';
 
   interface Props {
     tier: DifficultyTier;

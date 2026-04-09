@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 /* Nuit One — Neon-Noir Design Tokens */
 @theme {
@@ -20,8 +20,8 @@
   --color-text-muted: #606070;
 
   /* Fonts */
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 /* Base styles */
@@ -45,6 +45,12 @@ body {
 }
 
 /* Neon glow utilities */
-.glow-cyan { box-shadow: 0 0 20px rgba(0, 245, 255, 0.3); }
-.glow-magenta { box-shadow: 0 0 20px rgba(255, 0, 229, 0.3); }
-.glow-violet { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+}
+.glow-magenta {
+  box-shadow: 0 0 20px rgba(255, 0, 229, 0.3);
+}
+.glow-violet {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+}

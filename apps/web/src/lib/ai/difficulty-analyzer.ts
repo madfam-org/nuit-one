@@ -1,5 +1,4 @@
-import type { NoteEvent } from '@nuit-one/shared';
-import type { DifficultyTier } from '@nuit-one/shared';
+import type { DifficultyTier, NoteEvent } from '@nuit-one/shared';
 
 export interface DifficultyResult {
   tier: DifficultyTier;
@@ -47,13 +46,11 @@ export function analyzeDifficulty(notes: NoteEvent[], durationSeconds: number): 
   // Rhythmic complexity (variance in note durations)
   const durations = notes.map((n) => n.duration);
   const avgDuration = durations.reduce((s, d) => s + d, 0) / durations.length;
-  const durationVariance =
-    durations.reduce((s, d) => s + (d - avgDuration) ** 2, 0) / durations.length;
+  const durationVariance = durations.reduce((s, d) => s + (d - avgDuration) ** 2, 0) / durations.length;
   const rhythmicComplexity = Math.min(1, Math.sqrt(durationVariance) / 0.3);
 
   // Weighted score (0-100)
-  const score =
-    (noteDensity * 35 + pitchRange * 20 + intervalComplexity * 25 + rhythmicComplexity * 20) * 100 / 100;
+  const score = ((noteDensity * 35 + pitchRange * 20 + intervalComplexity * 25 + rhythmicComplexity * 20) * 100) / 100;
 
   let tier: DifficultyTier;
   if (score < 20) tier = 'easy';

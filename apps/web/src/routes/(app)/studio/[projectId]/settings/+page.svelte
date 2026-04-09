@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
-  import { GlassCard, Button } from '@nuit-one/ui';
+  
+  import { Button, GlassCard } from '@nuit-one/ui';
+import { enhance } from '$app/forms';
   import type { PageData } from './$types';
 
   let { data, form }: { data: PageData; form: { error?: string; success?: boolean } | null } = $props();
@@ -27,8 +28,9 @@
       <h2 class="text-sm font-semibold mb-3">Tempo</h2>
       <form method="POST" action="?/updateTempo" use:enhance class="flex gap-3 items-end">
         <div class="flex-1">
-          <label class="text-text-muted text-xs block mb-1">BPM</label>
+          <label for="tempoBpm" class="text-text-muted text-xs block mb-1">BPM</label>
           <input
+            id="tempoBpm"
             type="number"
             name="tempoBpm"
             value={data.project.tempoBpm}

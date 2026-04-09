@@ -25,6 +25,8 @@ export interface PerformanceResult {
   readonly missCount: number;
   /** Accuracy as percentage 0-100 */
   readonly accuracy: number;
+  /** Dynamics accuracy as percentage 0-100 */
+  readonly dynamicsScore: number;
 }
 
 /** Request body for saving a performance */
@@ -38,4 +40,5 @@ export interface SavePerformanceRequest {
   readonly goodCount: number;
   readonly missCount: number;
   readonly accuracy: number;
+  readonly dynamicsScore?: number;
 }

@@ -43,3 +43,7 @@ apps/*/storage/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Playwright
+apps/web/playwright-report/
+apps/web/test-results/

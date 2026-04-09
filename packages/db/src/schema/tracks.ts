@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, bigint, timestamp } from 'drizzle-orm/pg-core';
+import { bigint, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { projects } from './projects.js';
 
 export const tracks = pgTable('tracks', {
@@ -11,8 +11,15 @@ export const tracks = pgTable('tracks', {
   instrument: text('instrument').notNull().default('full_mix'),
   status: text('status', {
     enum: [
-      'pending_upload', 'uploaded', 'processing', 'ready', 'error',
-      'needs_parts', 'in_progress', 'delivered', 'approved',
+      'pending_upload',
+      'uploaded',
+      'processing',
+      'ready',
+      'error',
+      'needs_parts',
+      'in_progress',
+      'delivered',
+      'approved',
     ],
   })
     .notNull()

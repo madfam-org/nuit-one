@@ -1,8 +1,8 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation';
-  import UploadZone from '$lib/components/UploadZone.svelte';
-  import TrackList from '$lib/components/TrackList.svelte';
   import ProcessingStatus from '$lib/components/ProcessingStatus.svelte';
+  import TrackList from '$lib/components/TrackList.svelte';
+  import UploadZone from '$lib/components/UploadZone.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();

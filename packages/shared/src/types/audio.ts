@@ -12,12 +12,7 @@ export interface AudioDeviceInfo {
   readonly channelCount: number;
 }
 
-export type AudioEngineState =
-  | 'uninitialized'
-  | 'initializing'
-  | 'running'
-  | 'suspended'
-  | 'error';
+export type AudioEngineState = 'uninitialized' | 'initializing' | 'running' | 'suspended' | 'error';
 
 export interface AudioProcessingConfig {
   readonly sampleRate: SampleRate;

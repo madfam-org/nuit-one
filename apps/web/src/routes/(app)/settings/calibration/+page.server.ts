@@ -1,10 +1,12 @@
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
-import { eq, and } from 'drizzle-orm';
-import type { PageServerLoad, Actions } from './$types';
+import { error } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
+  if (!locals.userId) throw error(401, 'Unauthorized');
+  const userId = locals.userId;
 
   const profile = await db.query.calibrationProfiles.findFirst({
     where: and(eq(schema.calibrationProfiles.userId, userId), eq(schema.calibrationProfiles.isActive, true)),
@@ -25,7 +27,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   save: async ({ request, locals }) => {
-    const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
+    if (!locals.userId) throw error(401, 'Unauthorized');
+    const userId = locals.userId;
     const formData = await request.formData();
 
     const deviceName = (formData.get('deviceName') as string) || 'Default';

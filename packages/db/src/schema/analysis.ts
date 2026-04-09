@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, real, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { tracks } from './tracks.js';
 
 export const trackAnalysis = pgTable('track_analysis', {

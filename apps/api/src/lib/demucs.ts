@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process';
 import { mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { downloadFile, uploadFile } from './storage.js';
 import { updateJob } from './job-manager.js';
+import { downloadFile, uploadFile } from './storage.js';
 
 export type DemucsStemType = 'vocals' | 'drums' | 'bass' | 'other';
 
@@ -13,11 +13,7 @@ export interface StemResult {
   fileSizeBytes: number;
 }
 
-export async function runDemucs(
-  jobId: string,
-  trackId: string,
-  r2Key: string,
-): Promise<StemResult[]> {
+export async function runDemucs(jobId: string, trackId: string, r2Key: string): Promise<StemResult[]> {
   const workDir = await mkdtemp(join(tmpdir(), 'nuit-demucs-'));
   const inputPath = join(workDir, 'input.wav');
   const outputDir = join(workDir, 'output');
@@ -30,11 +26,7 @@ export async function runDemucs(
     // Run Demucs: 4-stem separation (vocals, drums, bass, other)
     updateJob(jobId, { status: 'processing', progress: 20 });
     await new Promise<void>((resolve, reject) => {
-      const proc = spawn('demucs', [
-        '-n', 'htdemucs',
-        '-o', outputDir,
-        inputPath,
-      ]);
+      const proc = spawn('demucs', ['-n', 'htdemucs', '-o', outputDir, inputPath]);
 
       let stderr = '';
       proc.stderr.on('data', (chunk: Buffer) => {

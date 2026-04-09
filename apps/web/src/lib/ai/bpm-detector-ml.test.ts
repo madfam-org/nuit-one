@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { detectBpm } from './bpm-detector-ml.js';
 
 describe('bpm-detector-ml', () => {

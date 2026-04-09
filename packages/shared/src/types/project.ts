@@ -1,8 +1,15 @@
 import type { NoteEvent } from './game.js';
 
 export type TrackStatus =
-  | 'pending_upload' | 'uploaded' | 'processing' | 'ready' | 'error'
-  | 'needs_parts' | 'in_progress' | 'delivered' | 'approved';
+  | 'pending_upload'
+  | 'uploaded'
+  | 'processing'
+  | 'ready'
+  | 'error'
+  | 'needs_parts'
+  | 'in_progress'
+  | 'delivered'
+  | 'approved';
 
 export type StemSource = 'upload' | 'recording' | 'demucs' | 'basic_pitch';
 

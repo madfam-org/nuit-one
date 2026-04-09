@@ -1,10 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import {
-  loadAudioEngine,
-  allocateBuffer,
-  freeBuffer,
-  type AudioEngineModule,
-} from './index';
+import { describe, expect, it, vi } from 'vitest';
+import { type AudioEngineModule, allocateBuffer, freeBuffer, loadAudioEngine } from './index';
 
 describe('bindings exports', () => {
   it('exports loadAudioEngine as a function', () => {
@@ -38,9 +33,7 @@ describe('allocateBuffer', () => {
 
     const result = allocateBuffer(mockModule, length);
 
-    expect(mockModule._malloc).toHaveBeenCalledWith(
-      length * Float32Array.BYTES_PER_ELEMENT
-    );
+    expect(mockModule._malloc).toHaveBeenCalledWith(length * Float32Array.BYTES_PER_ELEMENT);
     expect(result.ptr).toBe(mallocOffset);
     expect(result.array).toBeInstanceOf(Float32Array);
     expect(result.array.length).toBe(length);

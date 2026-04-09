@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { extractPeaks } from './waveform.js';
 
 function createBuffer(data: Float32Array, channels = 1, sampleRate = 44100): AudioBuffer {

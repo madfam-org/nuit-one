@@ -19,15 +19,27 @@ export const MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024;
 export const SUPPORTED_AUDIO_FORMATS = ['wav', 'flac', 'mp3', 'ogg'] as const;
 
 export const SUPPORTED_MIME_TYPES = [
-  'audio/wav', 'audio/x-wav', 'audio/wave',
-  'audio/flac', 'audio/x-flac',
-  'audio/mpeg', 'audio/mp3',
-  'audio/ogg', 'audio/vorbis',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/wave',
+  'audio/flac',
+  'audio/x-flac',
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/ogg',
+  'audio/vorbis',
 ] as const;
 
 export const TRACK_STATUSES = [
-  'pending_upload', 'uploaded', 'processing', 'ready', 'error',
-  'needs_parts', 'in_progress', 'delivered', 'approved',
+  'pending_upload',
+  'uploaded',
+  'processing',
+  'ready',
+  'error',
+  'needs_parts',
+  'in_progress',
+  'delivered',
+  'approved',
 ] as const;
 
 export const STEM_TYPES = ['bass', 'no_bass', 'vocals', 'drums', 'other'] as const;
@@ -38,28 +50,34 @@ export type PlayableInstrument = (typeof PLAYABLE_INSTRUMENTS)[number];
 
 /** Pitch detection frequency ranges per instrument (Hz) */
 export const INSTRUMENT_FREQUENCY_RANGES: Record<PlayableInstrument, { min: number; max: number }> = {
-  bass:   { min: 30,  max: 500  },
-  vocals: { min: 80,  max: 1100 },
-  drums:  { min: 60,  max: 500  },
-  other:  { min: 27,  max: 4200 },
+  bass: { min: 30, max: 500 },
+  vocals: { min: 80, max: 1100 },
+  drums: { min: 60, max: 500 },
+  other: { min: 27, max: 4200 },
 } as const;
 
 /** NoteHighway MIDI pitch display ranges per instrument */
 export const INSTRUMENT_MIDI_RANGES: Record<PlayableInstrument, { min: number; max: number }> = {
-  bass:   { min: 28, max: 72  },
-  vocals: { min: 36, max: 84  },
-  drums:  { min: 35, max: 81  },
-  other:  { min: 21, max: 108 },
+  bass: { min: 28, max: 72 },
+  vocals: { min: 36, max: 84 },
+  drums: { min: 35, max: 81 },
+  other: { min: 21, max: 108 },
 } as const;
 
 /** Display labels for instruments */
 export const INSTRUMENT_LABELS: Record<PlayableInstrument, string> = {
-  bass: 'Bass', vocals: 'Vocals', drums: 'Drums', other: 'Guitar / Keys',
+  bass: 'Bass',
+  vocals: 'Vocals',
+  drums: 'Drums',
+  other: 'Guitar / Keys',
 } as const;
 
 /** Neon colors for each instrument (Nuit Glass theme) */
 export const INSTRUMENT_COLORS: Record<PlayableInstrument, string> = {
-  bass: '#8b5cf6', vocals: '#00f5ff', drums: '#f59e0b', other: '#00ff88',
+  bass: '#8b5cf6',
+  vocals: '#00f5ff',
+  drums: '#f59e0b',
+  other: '#00ff88',
 } as const;
 
 /** Hit timing windows in milliseconds */

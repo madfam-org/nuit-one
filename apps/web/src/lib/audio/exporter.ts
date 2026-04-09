@@ -55,9 +55,7 @@ async function encodeMp3(buffer: AudioBuffer, kbps: number): Promise<Blob> {
   const mp3encoder = new lamejs.Mp3Encoder(buffer.numberOfChannels, buffer.sampleRate, kbps);
 
   const left = convertTo16Bit(buffer.getChannelData(0));
-  const right = buffer.numberOfChannels > 1
-    ? convertTo16Bit(buffer.getChannelData(1))
-    : left;
+  const right = buffer.numberOfChannels > 1 ? convertTo16Bit(buffer.getChannelData(1)) : left;
 
   const mp3Data: BlobPart[] = [];
   const blockSize = 1152;
@@ -79,7 +77,7 @@ function convertTo16Bit(float32: Float32Array): Int16Array {
   const int16 = new Int16Array(float32.length);
   for (let i = 0; i < float32.length; i++) {
     const s = Math.max(-1, Math.min(1, float32[i]!));
-    int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
   }
   return int16;
 }

@@ -1,6 +1,6 @@
-import { pgTable, uuid, real, boolean, timestamp, jsonb } from 'drizzle-orm/pg-core';
-import { tracks } from './tracks.js';
+import { boolean, jsonb, pgTable, real, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { stems } from './stems.js';
+import { tracks } from './tracks.js';
 
 export const performances = pgTable('performances', {
   id: uuid('id').primaryKey().defaultRandom(),

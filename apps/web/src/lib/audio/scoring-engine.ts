@@ -1,11 +1,12 @@
-import type { NoteEvent, PerformanceResult, HitJudgment } from '@nuit-one/shared';
-import { HIT_WINDOWS, HIT_SCORES } from '@nuit-one/shared';
+import type { HitJudgment, NoteEvent, PerformanceResult } from '@nuit-one/shared';
+import { HIT_SCORES, HIT_WINDOWS } from '@nuit-one/shared';
 
 export interface NoteJudgment {
   noteIndex: number;
   judgment: HitJudgment;
   timingOffsetMs: number;
   pitchOffsetSemitones: number;
+  velocityDelta: number;
 }
 
 export class ScoringEngine {
@@ -15,6 +16,8 @@ export class ScoringEngine {
   private _maxCombo = 0;
   private _totalScore = 0;
   private hitNotes = new Set<number>();
+  private _dynamicsSum = 0;
+  private _dynamicsCount = 0;
 
   constructor(notes: NoteEvent[]) {
     this.notes = [...notes].sort((a, b) => a.startTime - b.startTime);
@@ -22,9 +25,10 @@ export class ScoringEngine {
 
   /**
    * Evaluate a detected pitch at a given time against expected notes.
+   * @param detectedVelocity Optional MIDI velocity (0-127) from input amplitude
    * Returns a judgment if a note was hit, null otherwise.
    */
-  evaluate(currentTime: number, detectedMidiNote: number): NoteJudgment | null {
+  evaluate(currentTime: number, detectedMidiNote: number, detectedVelocity?: number): NoteJudgment | null {
     if (detectedMidiNote < 0) return null;
 
     // Find the closest unhit note within timing window
@@ -57,6 +61,11 @@ export class ScoringEngine {
     const timingMs = Math.abs(currentTime - (note.startTime + note.duration / 2)) * 1000;
     const pitchDiff = Math.abs(detectedMidiNote - note.pitch);
 
+    // Compute velocity delta
+    const expectedVelocity = note.velocity;
+    const actualVelocity = detectedVelocity ?? expectedVelocity;
+    const velocityDelta = Math.abs(expectedVelocity - actualVelocity);
+
     // Determine judgment
     let judgment: HitJudgment;
     if (timingMs <= HIT_WINDOWS.perfect && pitchDiff === 0) {
@@ -76,6 +85,7 @@ export class ScoringEngine {
       judgment,
       timingOffsetMs: timingMs,
       pitchOffsetSemitones: pitchDiff,
+      velocityDelta,
     };
 
     this.applyScore(result);
@@ -103,6 +113,7 @@ export class ScoringEngine {
           judgment: 'miss',
           timingOffsetMs: timePast,
           pitchOffsetSemitones: 0,
+          velocityDelta: 0,
         };
         this._combo = 0;
         this.judgments.push(miss);
@@ -118,6 +129,11 @@ export class ScoringEngine {
     if (j.judgment !== 'miss') {
       this._combo++;
       if (this._combo > this._maxCombo) this._maxCombo = this._combo;
+
+      // Track dynamics accuracy for non-miss hits
+      const dynamicsAccuracy = Math.max(0, 1 - j.velocityDelta / 127);
+      this._dynamicsSum += dynamicsAccuracy;
+      this._dynamicsCount++;
     } else {
       this._combo = 0;
     }
@@ -127,11 +143,24 @@ export class ScoringEngine {
     this._totalScore += points * multiplier;
   }
 
-  get combo(): number { return this._combo; }
-  get maxCombo(): number { return this._maxCombo; }
-  get totalScore(): number { return this._totalScore; }
-  get totalNotes(): number { return this.notes.length; }
-  get hitCount(): number { return this.hitNotes.size; }
+  get combo(): number {
+    return this._combo;
+  }
+  get maxCombo(): number {
+    return this._maxCombo;
+  }
+  get totalScore(): number {
+    return this._totalScore;
+  }
+  get totalNotes(): number {
+    return this.notes.length;
+  }
+  get hitCount(): number {
+    return this.hitNotes.size;
+  }
+  get dynamicsScore(): number {
+    return this._dynamicsCount > 0 ? (this._dynamicsSum / this._dynamicsCount) * 100 : 0;
+  }
 
   getResults(): PerformanceResult {
     const counts = { perfect: 0, great: 0, good: 0, miss: 0 };
@@ -144,9 +173,8 @@ export class ScoringEngine {
     counts.miss += unmissed;
 
     const total = this.notes.length;
-    const accuracy = total > 0
-      ? ((counts.perfect * 100 + counts.great * 75 + counts.good * 50) / (total * 100)) * 100
-      : 0;
+    const accuracy =
+      total > 0 ? ((counts.perfect * 100 + counts.great * 75 + counts.good * 50) / (total * 100)) * 100 : 0;
 
     return {
       totalScore: this._totalScore,
@@ -156,6 +184,7 @@ export class ScoringEngine {
       goodCount: counts.good,
       missCount: counts.miss,
       accuracy: Math.round(accuracy * 10) / 10,
+      dynamicsScore: Math.round(this.dynamicsScore * 10) / 10,
     };
   }
 }

@@ -1,11 +1,12 @@
-import { error } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
+import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-  const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
+  if (!locals.userId) throw error(401, 'Unauthorized');
+  const workspaceId = locals.workspaceId ?? '';
 
   const project = await db.query.projects.findFirst({
     where: eq(schema.projects.id, params.projectId),
@@ -15,10 +16,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (project.workspaceId !== workspaceId) throw error(403, 'Forbidden');
 
   // Get tracks for this project
-  const tracks = await db
-    .select()
-    .from(schema.tracks)
-    .where(eq(schema.tracks.projectId, project.id));
+  const tracks = await db.select().from(schema.tracks).where(eq(schema.tracks.projectId, project.id));
 
   // Get stems for all tracks
   let allStems: Array<{
@@ -31,10 +29,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (tracks.length > 0) {
     const readyTrack = tracks.find((t) => t.status === 'ready');
     if (readyTrack) {
-      const trackStems = await db
-        .select()
-        .from(schema.stems)
-        .where(eq(schema.stems.trackId, readyTrack.id));
+      const trackStems = await db.select().from(schema.stems).where(eq(schema.stems.trackId, readyTrack.id));
       allStems = trackStems.map((s) => ({
         id: s.id,
         trackId: s.trackId,

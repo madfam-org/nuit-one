@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { WORKLET_PROCESSOR_SOURCE } from './worklet-processor';
 
 describe('WORKLET_PROCESSOR_SOURCE', () => {

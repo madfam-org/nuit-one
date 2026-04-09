@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { colors } from './colors.js';
-import { typography } from './typography.js';
-import { spacing } from './spacing.js';
-import { effects } from './effects.js';
+import { describe, expect, it } from 'vitest';
 import { animations } from './animations.js';
+import { colors } from './colors.js';
+import { effects } from './effects.js';
+import { spacing } from './spacing.js';
+import { typography } from './typography.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -11,11 +11,7 @@ import { animations } from './animations.js';
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
-function allValuesMatch(
-  obj: Record<string, string>,
-  pattern: RegExp,
-  label: string,
-) {
+function allValuesMatch(obj: Record<string, string>, pattern: RegExp, label: string) {
   for (const [key, value] of Object.entries(obj)) {
     expect(value, `${label}.${key} ("${value}") should match ${pattern}`).toMatch(pattern);
   }
@@ -132,9 +128,7 @@ describe('typography', () => {
     });
 
     it('sizes increase monotonically', () => {
-      const ordered = expectedKeys.map(
-        (k) => parseFloat(typography.fontSize[k]),
-      );
+      const ordered = expectedKeys.map((k) => parseFloat(typography.fontSize[k]));
       for (let i = 1; i < ordered.length; i++) {
         expect(
           ordered[i]!,
@@ -161,9 +155,7 @@ describe('typography', () => {
     });
 
     it('weights increase in order', () => {
-      const ordered = expectedKeys.map(
-        (k) => Number(typography.fontWeight[k]),
-      );
+      const ordered = expectedKeys.map((k) => Number(typography.fontWeight[k]));
       for (let i = 1; i < ordered.length; i++) {
         expect(ordered[i]!).toBeGreaterThan(ordered[i - 1]!);
       }
@@ -214,10 +206,9 @@ describe('spacing', () => {
       const curr = expectedKeys[i]!;
       const prevVal = prev === 0 ? 0 : parseFloat(spacing[prev]);
       const currVal = parseFloat(spacing[curr]);
-      expect(
-        currVal,
-        `spacing[${curr}] (${currVal}) should be > spacing[${prev}] (${prevVal})`,
-      ).toBeGreaterThan(prevVal);
+      expect(currVal, `spacing[${curr}] (${currVal}) should be > spacing[${prev}] (${prevVal})`).toBeGreaterThan(
+        prevVal,
+      );
     }
   });
 
@@ -339,10 +330,7 @@ describe('animations', () => {
 
   it('all animation names are prefixed with "nuit-"', () => {
     for (const key of expectedKeys) {
-      expect(
-        animations[key].name,
-        `animations.${key}.name`,
-      ).toMatch(/^nuit-/);
+      expect(animations[key].name, `animations.${key}.name`).toMatch(/^nuit-/);
     }
   });
 });

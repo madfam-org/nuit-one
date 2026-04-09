@@ -24,14 +24,30 @@ export function createAnalysisStore() {
   let workerManager: WorkerManager | null = null;
 
   return {
-    get status() { return status; },
-    get progress() { return progress; },
-    get chords() { return chords; },
-    get key() { return key; },
-    get keyConfidence() { return keyConfidence; },
-    get bpm() { return bpm; },
-    get difficultyTier() { return difficultyTier; },
-    get errorMessage() { return errorMessage; },
+    get status() {
+      return status;
+    },
+    get progress() {
+      return progress;
+    },
+    get chords() {
+      return chords;
+    },
+    get key() {
+      return key;
+    },
+    get keyConfidence() {
+      return keyConfidence;
+    },
+    get bpm() {
+      return bpm;
+    },
+    get difficultyTier() {
+      return difficultyTier;
+    },
+    get errorMessage() {
+      return errorMessage;
+    },
 
     async analyze(audioBuffer: AudioBuffer) {
       status = 'running';
@@ -53,7 +69,9 @@ export function createAnalysisStore() {
             sampleRate: audioBuffer.sampleRate,
           },
           [samples.buffer],
-          (p) => { progress = p; },
+          (p) => {
+            progress = p;
+          },
         );
 
         chords = result.chords;

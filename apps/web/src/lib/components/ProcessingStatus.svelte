@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  
   import { GlassCard, NeonBadge } from '@nuit-one/ui';
+import { onDestroy } from 'svelte';
 
   interface Props {
     trackId: string;

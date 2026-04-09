@@ -43,11 +43,7 @@ export async function getCachedModel(key: string): Promise<ArrayBuffer | null> {
   });
 }
 
-export async function cacheModel(
-  key: string,
-  data: ArrayBuffer,
-  version: string,
-): Promise<void> {
+export async function cacheModel(key: string, data: ArrayBuffer, version: string): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');

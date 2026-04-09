@@ -18,7 +18,7 @@ let jwks: jose.JSONWebKeySet | null = null;
 async function getJWKS(): Promise<jose.JSONWebKeySet> {
   if (!jwks) {
     const response = await fetch(`${JANUA_URL}/.well-known/jwks.json`);
-    jwks = await response.json() as jose.JSONWebKeySet;
+    jwks = (await response.json()) as jose.JSONWebKeySet;
   }
   return jwks;
 }

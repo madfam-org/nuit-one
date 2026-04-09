@@ -1,18 +1,16 @@
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
-import { eq, desc, sql } from 'drizzle-orm';
+import { error } from '@sveltejs/kit';
+import { desc, eq, sql } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
-  const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
+  if (!locals.userId) throw error(401, 'Unauthorized');
+  const userId = locals.userId;
+  const workspaceId = locals.workspaceId ?? '';
 
   const [tracks, projects] = await Promise.all([
-    db
-      .select()
-      .from(schema.tracks)
-      .where(eq(schema.tracks.userId, userId))
-      .orderBy(desc(schema.tracks.createdAt)),
+    db.select().from(schema.tracks).where(eq(schema.tracks.userId, userId)).orderBy(desc(schema.tracks.createdAt)),
     db
       .select({
         id: schema.projects.id,
@@ -20,7 +18,9 @@ export const load: PageServerLoad = async ({ locals }) => {
         tempoBpm: schema.projects.tempoBpm,
         timeSignature: schema.projects.timeSignature,
         createdAt: schema.projects.createdAt,
-        trackCount: sql<number>`(select count(*) from tracks where tracks.project_id = ${schema.projects.id})`.as('track_count'),
+        trackCount: sql<number>`(select count(*) from tracks where tracks.project_id = ${schema.projects.id})`.as(
+          'track_count',
+        ),
       })
       .from(schema.projects)
       .where(eq(schema.projects.workspaceId, workspaceId))

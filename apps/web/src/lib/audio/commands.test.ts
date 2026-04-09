@@ -1,13 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
-import {
-  VolumeChangeCommand,
-  PanChangeCommand,
-  MuteToggleCommand,
-  SoloCommand,
-  EqChangeCommand,
-  ReverbChangeCommand,
-} from './commands.js';
+import { describe, expect, it, vi } from 'vitest';
 import type { PlayerStore } from '$lib/stores/player.svelte.js';
+import {
+  EqChangeCommand,
+  MuteToggleCommand,
+  PanChangeCommand,
+  ReverbChangeCommand,
+  SoloCommand,
+  VolumeChangeCommand,
+} from './commands.js';
 
 function mockStore() {
   return {

@@ -1,17 +1,18 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import { page } from '$app/stores';
+  
   import {
+    BottomBar,
+    BottomTabs,
     Sidebar,
     SidebarItem,
     SidebarSection,
-    BottomBar,
-    BottomTabs,
   } from '@nuit-one/ui';
-  import { getSidebarStore } from '$lib/stores/sidebar.svelte';
+import type { Snippet } from 'svelte';
+  import { page } from '$app/stores';
+  import { icons } from '$lib/icons';
   import { createLayoutStore } from '$lib/stores/layout.svelte';
   import { getSessionStore } from '$lib/stores/session.svelte';
-  import { icons } from '$lib/icons';
+  import { getSidebarStore } from '$lib/stores/sidebar.svelte';
 
   interface Props {
     children: Snippet;

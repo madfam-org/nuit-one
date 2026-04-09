@@ -1,5 +1,5 @@
-import type { Command } from './command-stack.js';
 import type { PlayerStore } from '$lib/stores/player.svelte.js';
+import type { Command } from './command-stack.js';
 
 export class VolumeChangeCommand implements Command {
   readonly description: string;
@@ -11,8 +11,12 @@ export class VolumeChangeCommand implements Command {
   ) {
     this.description = `Change ${stemName} volume`;
   }
-  execute() { this.store.setVolume(this.stemName, this.newValue); }
-  undo() { this.store.setVolume(this.stemName, this.oldValue); }
+  execute() {
+    this.store.setVolume(this.stemName, this.newValue);
+  }
+  undo() {
+    this.store.setVolume(this.stemName, this.oldValue);
+  }
 }
 
 export class PanChangeCommand implements Command {
@@ -25,8 +29,12 @@ export class PanChangeCommand implements Command {
   ) {
     this.description = `Change ${stemName} pan`;
   }
-  execute() { this.store.setPan(this.stemName, this.newValue); }
-  undo() { this.store.setPan(this.stemName, this.oldValue); }
+  execute() {
+    this.store.setPan(this.stemName, this.newValue);
+  }
+  undo() {
+    this.store.setPan(this.stemName, this.oldValue);
+  }
 }
 
 export class MuteToggleCommand implements Command {
@@ -37,8 +45,12 @@ export class MuteToggleCommand implements Command {
   ) {
     this.description = `Toggle ${stemName} mute`;
   }
-  execute() { this.store.toggleMute(this.stemName); }
-  undo() { this.store.toggleMute(this.stemName); }
+  execute() {
+    this.store.toggleMute(this.stemName);
+  }
+  undo() {
+    this.store.toggleMute(this.stemName);
+  }
 }
 
 export class SoloCommand implements Command {
@@ -73,8 +85,12 @@ export class EqChangeCommand implements Command {
   ) {
     this.description = `Change ${stemName} EQ ${band}`;
   }
-  execute() { this.store.setEq(this.stemName, this.band, this.newValue); }
-  undo() { this.store.setEq(this.stemName, this.band, this.oldValue); }
+  execute() {
+    this.store.setEq(this.stemName, this.band, this.newValue);
+  }
+  undo() {
+    this.store.setEq(this.stemName, this.band, this.oldValue);
+  }
 }
 
 export class ReverbChangeCommand implements Command {
@@ -87,6 +103,10 @@ export class ReverbChangeCommand implements Command {
   ) {
     this.description = `Change ${stemName} reverb`;
   }
-  execute() { this.store.setReverbSend(this.stemName, this.newValue); }
-  undo() { this.store.setReverbSend(this.stemName, this.oldValue); }
+  execute() {
+    this.store.setReverbSend(this.stemName, this.newValue);
+  }
+  undo() {
+    this.store.setReverbSend(this.stemName, this.oldValue);
+  }
 }

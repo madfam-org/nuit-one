@@ -52,15 +52,33 @@ export function createPlayerStore(externalCtx?: AudioContext) {
   }
 
   return {
-    get isPlaying() { return isPlaying; },
-    get currentTime() { return currentTime; },
-    get duration() { return duration; },
-    get loading() { return loading; },
-    get stems() { return stems; },
-    get player() { return player; },
-    get loopStart() { return loopStart; },
-    get loopEnd() { return loopEnd; },
-    get isLooping() { return isLooping; },
+    get isPlaying() {
+      return isPlaying;
+    },
+    get currentTime() {
+      return currentTime;
+    },
+    get duration() {
+      return duration;
+    },
+    get loading() {
+      return loading;
+    },
+    get stems() {
+      return stems;
+    },
+    get player() {
+      return player;
+    },
+    get loopStart() {
+      return loopStart;
+    },
+    get loopEnd() {
+      return loopEnd;
+    },
+    get isLooping() {
+      return isLooping;
+    },
 
     async loadStems(stemUrls: Record<string, string>) {
       loading = true;

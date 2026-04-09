@@ -1,19 +1,20 @@
-import { error } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
-import { eq, and } from 'drizzle-orm';
 import type { NoteEvent } from '@nuit-one/shared';
+import { error } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
 function validateNotes(data: unknown): NoteEvent[] {
   if (!Array.isArray(data)) return [];
   return data.filter(
     (n): n is NoteEvent =>
-      typeof n === 'object' && n !== null &&
+      typeof n === 'object' &&
+      n !== null &&
       typeof n.startTime === 'number' &&
       typeof n.duration === 'number' &&
       typeof n.pitch === 'number' &&
-      typeof n.velocity === 'number'
+      typeof n.velocity === 'number',
   );
 }
 
@@ -27,10 +28,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (!track) throw error(404, 'Track not found');
   if (track.status !== 'ready') throw error(400, 'Track is not ready');
 
-  const trackStems = await db
-    .select()
-    .from(schema.stems)
-    .where(eq(schema.stems.trackId, track.id));
+  const trackStems = await db.select().from(schema.stems).where(eq(schema.stems.trackId, track.id));
 
   const stemUrls: Record<string, string> = {};
   const stemsWithNotes: Record<string, { stemId: string; notes: NoteEvent[] }> = {};

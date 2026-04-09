@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { GlassCard, Button } from '@nuit-one/ui';
-  import { exportMix, type ExportFormat, type Mp3Quality } from '$lib/audio/exporter.js';
+  import { Button, GlassCard } from '@nuit-one/ui';
+  import { type ExportFormat, exportMix, type Mp3Quality } from '$lib/audio/exporter.js';
   import type { StemPlayer } from '$lib/audio/stem-player.js';
   import type { PlayerStore } from '$lib/stores/player.svelte.js';
 
@@ -57,22 +57,26 @@
   }
 </script>
 
-<div class="export-overlay">
+<div class="export-overlay" role="dialog" aria-modal="true" aria-labelledby="export-dialog-title">
   <GlassCard padding="lg">
     <div class="export-dialog">
-      <h2 class="export-title">Export Mix</h2>
+      <h2 class="export-title" id="export-dialog-title">Export Mix</h2>
       <p class="export-subtitle">{projectName}</p>
 
       <div class="export-options">
         <div class="option-group">
-          <label class="option-label">Format</label>
-          <div class="format-buttons">
+          <span class="option-label" id="export-format-label">Format</span>
+          <div class="format-buttons" role="radiogroup" aria-labelledby="export-format-label">
             <button
               class="format-btn" class:active={format === 'wav'}
+              role="radio"
+              aria-checked={format === 'wav'}
               onclick={() => (format = 'wav')}
             >WAV</button>
             <button
               class="format-btn" class:active={format === 'mp3'}
+              role="radio"
+              aria-checked={format === 'mp3'}
               onclick={() => (format = 'mp3')}
             >MP3</button>
           </div>
@@ -80,11 +84,13 @@
 
         {#if format === 'mp3'}
           <div class="option-group">
-            <label class="option-label">Quality</label>
-            <div class="format-buttons">
+            <span class="option-label" id="export-quality-label">Quality</span>
+            <div class="format-buttons" role="radiogroup" aria-labelledby="export-quality-label">
               {#each [128, 192, 320] as q}
                 <button
                   class="format-btn" class:active={mp3Quality === q}
+                  role="radio"
+                  aria-checked={mp3Quality === q}
                   onclick={() => (mp3Quality = q as Mp3Quality)}
                 >{q} kbps</button>
               {/each}

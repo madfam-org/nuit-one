@@ -34,9 +34,12 @@ export function getJob(id: string): Job | undefined {
 }
 
 // Clean up old jobs (older than 1 hour)
-setInterval(() => {
-  const cutoff = Date.now() - 60 * 60 * 1000;
-  for (const [id, job] of jobs) {
-    if (job.createdAt < cutoff) jobs.delete(id);
-  }
-}, 10 * 60 * 1000);
+setInterval(
+  () => {
+    const cutoff = Date.now() - 60 * 60 * 1000;
+    for (const [id, job] of jobs) {
+      if (job.createdAt < cutoff) jobs.delete(id);
+    }
+  },
+  10 * 60 * 1000,
+);

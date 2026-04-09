@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PerformanceResult } from '@nuit-one/shared';
-  import { GlassCard, Button } from '@nuit-one/ui';
+  import { Button, GlassCard } from '@nuit-one/ui';
 
   interface Props {
     result: PerformanceResult;

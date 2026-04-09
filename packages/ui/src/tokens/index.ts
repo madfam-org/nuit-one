@@ -1,5 +1,5 @@
-export { colors, type Colors } from './colors.js';
-export { typography, type Typography } from './typography.js';
-export { spacing, type Spacing } from './spacing.js';
-export { effects, type Effects } from './effects.js';
-export { animations, type Animations } from './animations.js';
+export { type Animations, animations } from './animations.js';
+export { type Colors, colors } from './colors.js';
+export { type Effects, effects } from './effects.js';
+export { type Spacing, spacing } from './spacing.js';
+export { type Typography, typography } from './typography.js';

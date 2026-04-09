@@ -7,6 +7,7 @@
     type?: 'button' | 'submit' | 'reset';
     disabled?: boolean;
     class?: string;
+    'aria-label'?: string;
     onclick?: (event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) => void;
     children?: Snippet;
   }
@@ -17,6 +18,7 @@
     type = 'button',
     disabled = false,
     class: className = '',
+    'aria-label': ariaLabel,
     onclick,
     children,
   }: Props = $props();
@@ -35,6 +37,7 @@
   {disabled}
   {onclick}
   {type}
+  aria-label={ariaLabel}
 >
   {#if children}
     {@render children()}

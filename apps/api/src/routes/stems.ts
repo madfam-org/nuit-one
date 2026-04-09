@@ -1,20 +1,9 @@
-import { Hono } from 'hono';
-import { createJob, getJob, updateJob } from '../lib/job-manager.js';
-import { runDemucs } from '../lib/demucs.js';
-import { runTranscription } from '../lib/transcription.js';
-import { createDb } from '@nuit-one/db';
 import { schema } from '@nuit-one/db';
-import { eq, and } from 'drizzle-orm';
-
-let _db: ReturnType<typeof createDb>;
-function getDb() {
-  if (!_db) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL environment variable is required');
-    _db = createDb(url);
-  }
-  return _db;
-}
+import { and, eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { runDemucs } from '../lib/demucs.js';
+import { createJob, getJob, updateJob } from '../lib/job-manager.js';
+import { runTranscription } from '../lib/transcription.js';
 
 export const stemRoutes = new Hono();
 
@@ -26,7 +15,7 @@ stemRoutes.post('/split', async (c) => {
   if (!trackId) return c.json({ error: 'Missing trackId' }, 400);
 
   // Verify track exists and is uploaded
-  const db = getDb();
+  const db = c.get('db');
   const track = await db.query.tracks.findFirst({
     where: eq(schema.tracks.id, trackId),
   });
@@ -90,7 +79,7 @@ stemRoutes.post('/transcribe', async (c) => {
 
   if (!trackId) return c.json({ error: 'Missing trackId' }, 400);
 
-  const db = getDb();
+  const db = c.get('db');
   // Find the bass stem for this track
   const bassStem = await db.query.stems.findFirst({
     where: and(eq(schema.stems.trackId, trackId), eq(schema.stems.stemType, 'bass')),
@@ -106,10 +95,7 @@ stemRoutes.post('/transcribe', async (c) => {
       const notes = await runTranscription(job.id, bassStem.r2Key);
 
       // Store note data on the stem
-      await db
-        .update(schema.stems)
-        .set({ midiData: notes })
-        .where(eq(schema.stems.id, bassStem.id));
+      await db.update(schema.stems).set({ midiData: notes }).where(eq(schema.stems.id, bassStem.id));
 
       updateJob(job.id, { status: 'complete', progress: 100 });
     } catch (err) {

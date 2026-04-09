@@ -1,11 +1,13 @@
-import { describe, it, expect } from 'vitest';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import { describe, expect, it } from 'vitest';
+import { createMockDbMiddleware } from '../test-utils/mock-db.js';
 import { importRoutes } from './import.js';
 
 /**
  * Build a test app that mounts importRoutes behind a fake auth
- * middleware, matching the pattern from stems.test.ts.
+ * middleware and a mock DB middleware, matching the pattern from
+ * stems.test.ts.
  */
 function createTestApp(userId = 'test-user-123', workspaceId = 'ws-456') {
   const app = new Hono();
@@ -16,6 +18,7 @@ function createTestApp(userId = 'test-user-123', workspaceId = 'ws-456') {
   });
 
   app.use('/*', fakeAuth);
+  app.use('/*', createMockDbMiddleware());
   app.route('/', importRoutes);
   return app;
 }

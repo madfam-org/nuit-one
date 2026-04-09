@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 // OfflineAudioContext is not available in vitest (no Web Audio API)
 // Test the pure encoding helpers via the wav encoder
@@ -7,10 +7,7 @@ import { encodeWav } from './wav-encoder.js';
 describe('exporter integration', () => {
   it('encodeWav produces correct size for stereo buffer', () => {
     const length = 44100;
-    const channelData = [
-      new Float32Array(length).fill(0),
-      new Float32Array(length).fill(0),
-    ];
+    const channelData = [new Float32Array(length).fill(0), new Float32Array(length).fill(0)];
     const buffer = {
       numberOfChannels: 2,
       sampleRate: 44100,

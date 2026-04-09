@@ -1,33 +1,33 @@
-import { describe, it, expect, expectTypeOf } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import type {
-  AudioFormat,
-  SampleRate,
-  BufferSize,
   AudioDeviceInfo,
   AudioEngineState,
+  AudioFormat,
   AudioProcessingConfig,
-  MidiNote,
-  MidiEvent,
-  MidiTrack,
-  TrackStatus,
-  StemSource,
-  StemType,
-  Project,
-  Track,
-  Stem,
-  WorkspaceRole,
-  Workspace,
-  WorkspaceMember,
-  PerformanceScore,
+  BufferSize,
+  CalibrationProfile,
+  CalibrationState,
+  CalibrationStep,
+  HitJudgment,
   HitResult,
+  MidiEvent,
+  MidiNote,
+  MidiTrack,
+  NoteEvent,
   NoteHit,
   Performance,
-  CalibrationProfile,
-  CalibrationStep,
-  CalibrationState,
-  NoteEvent,
-  HitJudgment,
   PerformanceResult,
+  PerformanceScore,
+  Project,
+  SampleRate,
+  Stem,
+  StemSource,
+  StemType,
+  Track,
+  TrackStatus,
+  Workspace,
+  WorkspaceMember,
+  WorkspaceRole,
 } from './index.js';
 
 // ---------------------------------------------------------------------------
@@ -311,8 +311,15 @@ describe('project types', () => {
 
     it('covers all 9 status values at runtime', () => {
       const allStatuses: TrackStatus[] = [
-        'pending_upload', 'uploaded', 'processing', 'ready', 'error',
-        'needs_parts', 'in_progress', 'delivered', 'approved',
+        'pending_upload',
+        'uploaded',
+        'processing',
+        'ready',
+        'error',
+        'needs_parts',
+        'in_progress',
+        'delivered',
+        'approved',
       ];
       expect(allStatuses).toHaveLength(9);
       expect(new Set(allStatuses).size).toBe(9);
@@ -784,6 +791,7 @@ describe('game types', () => {
       expectTypeOf<PerformanceResult>().toHaveProperty('goodCount');
       expectTypeOf<PerformanceResult>().toHaveProperty('missCount');
       expectTypeOf<PerformanceResult>().toHaveProperty('accuracy');
+      expectTypeOf<PerformanceResult>().toHaveProperty('dynamicsScore');
     });
 
     it('all fields are numbers', () => {
@@ -794,6 +802,7 @@ describe('game types', () => {
       expectTypeOf<PerformanceResult['goodCount']>().toBeNumber();
       expectTypeOf<PerformanceResult['missCount']>().toBeNumber();
       expectTypeOf<PerformanceResult['accuracy']>().toBeNumber();
+      expectTypeOf<PerformanceResult['dynamicsScore']>().toBeNumber();
     });
 
     it('accepts a conforming runtime object', () => {
@@ -805,6 +814,7 @@ describe('game types', () => {
         goodCount: 5,
         missCount: 2,
         accuracy: 87.5,
+        dynamicsScore: 82.3,
       };
       expect(result.totalScore).toBe(12500);
       expect(result.maxCombo).toBe(42);
@@ -820,6 +830,7 @@ describe('game types', () => {
         goodCount: 0,
         missCount: 0,
         accuracy: 100,
+        dynamicsScore: 100,
       };
       expect(perfect.missCount).toBe(0);
       expect(perfect.accuracy).toBe(100);
@@ -837,23 +848,46 @@ describe('barrel re-exports from types/index', () => {
     // structural shapes.
 
     const audioDevice: AudioDeviceInfo = {
-      id: 'a', name: 'A', kind: 'input', sampleRates: [44100], channelCount: 1,
+      id: 'a',
+      name: 'A',
+      kind: 'input',
+      sampleRates: [44100],
+      channelCount: 1,
     };
     const midiNote: MidiNote = {
-      pitch: 60, velocity: 100, startTime: 0, duration: 1, channel: 0,
+      pitch: 60,
+      velocity: 100,
+      startTime: 0,
+      duration: 1,
+      channel: 0,
     };
     const project: Project = {
-      id: 'p', workspaceId: 'w', name: 'P', tempoBpm: 120,
-      timeSignature: '4/4', createdBy: 'u', createdAt: '',
+      id: 'p',
+      workspaceId: 'w',
+      name: 'P',
+      tempoBpm: 120,
+      timeSignature: '4/4',
+      createdBy: 'u',
+      createdAt: '',
     };
     const workspace: Workspace = {
-      id: 'w', name: 'W', slug: 'w', avatarUrl: null, memberCount: 1, role: 'owner',
+      id: 'w',
+      name: 'W',
+      slug: 'w',
+      avatarUrl: null,
+      memberCount: 1,
+      role: 'owner',
     };
     const score: PerformanceScore = {
-      timing: 0, dynamics: 0, pitch: 0, overall: 0,
+      timing: 0,
+      dynamics: 0,
+      pitch: 0,
+      overall: 0,
     };
     const calibrationState: CalibrationState = {
-      currentStep: 'complete', measurements: [], deviceName: 'test',
+      currentStep: 'complete',
+      measurements: [],
+      deviceName: 'test',
     };
 
     // Runtime assertions to confirm objects are well-formed

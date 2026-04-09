@@ -1,21 +1,21 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { onMount, onDestroy } from 'svelte';
-  import type { HitJudgment, NoteEvent, PerformanceResult } from '@nuit-one/shared';
-  import {
-    INSTRUMENT_LABELS, INSTRUMENT_COLORS,
-    INSTRUMENT_FREQUENCY_RANGES, INSTRUMENT_MIDI_RANGES,
+  
+  import type { HitJudgment, NoteEvent, PerformanceResult, PlayableInstrument } from '@nuit-one/shared';
+  import {INSTRUMENT_COLORS,
+    INSTRUMENT_FREQUENCY_RANGES, 
+    INSTRUMENT_LABELS, INSTRUMENT_MIDI_RANGES,
   } from '@nuit-one/shared';
-  import type { PlayableInstrument } from '@nuit-one/shared';
-  import { createPlayerStore } from '$lib/stores/player.svelte.js';
+  import { Button, GlassCard } from '@nuit-one/ui';
+  import { onDestroy, onMount } from 'svelte';
+import { goto } from '$app/navigation';
+  import { type AudioInputDevice, getAudioInputDevices } from '$lib/audio/device-manager.js';
   import { PitchDetector } from '$lib/audio/pitch-detector.js';
   import { ScoringEngine } from '$lib/audio/scoring-engine.js';
-  import { getAudioInputDevices, type AudioInputDevice } from '$lib/audio/device-manager.js';
   import NoteHighway from '$lib/components/NoteHighway.svelte';
-  import ScoreDisplay from '$lib/components/ScoreDisplay.svelte';
-  import ResultsScreen from '$lib/components/ResultsScreen.svelte';
   import PlayerSlot from '$lib/components/PlayerSlot.svelte';
-  import { GlassCard, Button } from '@nuit-one/ui';
+  import ResultsScreen from '$lib/components/ResultsScreen.svelte';
+  import ScoreDisplay from '$lib/components/ScoreDisplay.svelte';
+  import { createPlayerStore } from '$lib/stores/player.svelte.js';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -179,7 +179,7 @@
       if (!p.scoringEngine) continue;
 
       if (p.pitchDetector?.running && p.pitchDetector.currentMidiNote > 0) {
-        const judgment = p.scoringEngine.evaluate(time, p.pitchDetector.currentMidiNote);
+        const judgment = p.scoringEngine.evaluate(time, p.pitchDetector.currentMidiNote, p.pitchDetector.currentAmplitude);
         if (judgment) {
           p.lastJudgment = judgment.judgment;
           p.recentJudgments = [...p.recentJudgments.slice(-20), {

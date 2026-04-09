@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
 import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
+import { describe, expect, it } from 'vitest';
+import { createMockDbMiddleware } from '../test-utils/mock-db.js';
 import { performanceRoutes } from './performances.js';
 
 function createTestApp(userId = 'test-user-123', workspaceId = 'ws-456') {
@@ -12,6 +13,7 @@ function createTestApp(userId = 'test-user-123', workspaceId = 'ws-456') {
   });
 
   app.use('/*', fakeAuth);
+  app.use('/*', createMockDbMiddleware());
   app.route('/', performanceRoutes);
   return app;
 }
@@ -52,13 +54,32 @@ describe('POST /', () => {
     const body = await res.json();
     expect(body.error).toBe('Missing accuracy');
   });
+
+  it('returns 201 with id when all fields provided', async () => {
+    const app = createTestApp();
+    const res = await app.request('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trackId: '00000000-0000-0000-0000-000000000000',
+        totalScore: 100,
+        accuracy: 50,
+      }),
+    });
+    // Mock DB returns [{ id: 'mock-id' }] from insert().values().returning()
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.id).toBe('mock-id');
+  });
 });
 
 describe('GET /:trackId', () => {
-  it('returns array (empty if no DB or no data)', async () => {
+  it('returns 200 with empty array when no performances exist', async () => {
     const app = createTestApp();
     const res = await app.request('/00000000-0000-0000-0000-000000000000');
-    // Will be 200 with empty array or 500 if no DB
-    expect([200, 500]).toContain(res.status);
+    // Mock DB returns [] from select().from().where().orderBy()
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual([]);
   });
 });

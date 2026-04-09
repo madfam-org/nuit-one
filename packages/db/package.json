@@ -10,11 +10,12 @@
   "scripts": {
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
+    "migrate:run": "tsx src/migrate.ts",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "echo 'no linter configured'"
+    "lint": "biome check ."
   },
   "dependencies": {
     "drizzle-orm": "^0.39.0",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }

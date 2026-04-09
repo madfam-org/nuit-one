@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getAudioInputDevices } from './device-manager.js';
 
 describe('getAudioInputDevices', () => {
@@ -38,9 +38,7 @@ describe('getAudioInputDevices', () => {
     const mockTrack = { stop: vi.fn() };
     const mockStream = { getTracks: () => [mockTrack] };
 
-    const mockDevices = [
-      { kind: 'audioinput', deviceId: 'abcdef1234567890', label: '', groupId: 'g1' },
-    ];
+    const mockDevices = [{ kind: 'audioinput', deviceId: 'abcdef1234567890', label: '', groupId: 'g1' }];
 
     Object.defineProperty(globalThis, 'navigator', {
       value: {

@@ -11,11 +11,13 @@ export interface AudioInputDevice {
 export async function getAudioInputDevices(): Promise<AudioInputDevice[]> {
   const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   const devices = await navigator.mediaDevices.enumerateDevices();
-  tempStream.getTracks().forEach(t => t.stop());
+  tempStream.getTracks().forEach((t) => {
+    t.stop();
+  });
 
   return devices
-    .filter(d => d.kind === 'audioinput')
-    .map(d => ({
+    .filter((d) => d.kind === 'audioinput')
+    .map((d) => ({
       deviceId: d.deviceId,
       label: d.label || `Input ${d.deviceId.slice(0, 8)}`,
       groupId: d.groupId,

@@ -1,9 +1,10 @@
 name: Build & Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
     branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
+    types: [completed]
   workflow_dispatch:
 
 concurrency:
@@ -14,6 +15,7 @@ jobs:
   build-and-deploy:
     name: Build, Push & Update Manifests
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: write
       packages: write

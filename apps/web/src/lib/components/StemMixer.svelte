@@ -63,6 +63,7 @@
         <Button
           variant="ghost"
           size="sm"
+          aria-label="{stemLabels[stem.name] ?? stem.name}: {stem.muted ? 'Unmute' : 'Mute'}"
           onclick={() => player.toggleMute(stem.name)}
         >
           <span class="btn-label" class:active={stem.muted} style:--active-color={color}>
@@ -73,6 +74,7 @@
         <Button
           variant="ghost"
           size="sm"
+          aria-label="{stemLabels[stem.name] ?? stem.name}: {stem.solo ? 'Unsolo' : 'Solo'}"
           onclick={() => stem.solo ? player.unsolo() : player.solo(stem.name)}
         >
           <span class="btn-label" class:active={stem.solo} style:--active-color={color}>

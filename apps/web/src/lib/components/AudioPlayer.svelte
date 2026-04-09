@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  
   import { GlassCard } from '@nuit-one/ui';
-  import TransportBar from './TransportBar.svelte';
-  import StemMixer from './StemMixer.svelte';
+import { onDestroy } from 'svelte';
   import { createPlayerStore } from '$lib/stores/player.svelte.js';
+  import StemMixer from './StemMixer.svelte';
+  import TransportBar from './TransportBar.svelte';
 
   interface Props {
     stemUrls: Record<string, string>;

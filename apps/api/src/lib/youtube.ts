@@ -27,8 +27,12 @@ export async function downloadYouTubeAudio(url: string): Promise<YouTubeResult> 
     const proc = spawn('yt-dlp', ['--get-title', '--no-warnings', url]);
     let stdout = '';
     let stderr = '';
-    proc.stdout.on('data', (chunk: Buffer) => { stdout += chunk.toString(); });
-    proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
+    proc.stdout.on('data', (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+    proc.stderr.on('data', (chunk: Buffer) => {
+      stderr += chunk.toString();
+    });
     proc.on('close', (code) => {
       if (code === 0) resolve(stdout.trim());
       else reject(new Error(`yt-dlp title fetch failed: ${stderr}`));
@@ -39,17 +43,23 @@ export async function downloadYouTubeAudio(url: string): Promise<YouTubeResult> 
   // Download audio as WAV
   await new Promise<void>((resolve, reject) => {
     const proc = spawn('yt-dlp', [
-      '-f', 'bestaudio',
+      '-f',
+      'bestaudio',
       '-x',
-      '--audio-format', 'wav',
-      '--audio-quality', '0',
-      '-o', join(workDir, 'audio.%(ext)s'),
+      '--audio-format',
+      'wav',
+      '--audio-quality',
+      '0',
+      '-o',
+      join(workDir, 'audio.%(ext)s'),
       '--no-warnings',
       url,
     ]);
 
     let stderr = '';
-    proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
+    proc.stderr.on('data', (chunk: Buffer) => {
+      stderr += chunk.toString();
+    });
     proc.on('close', (code) => {
       if (code === 0) resolve();
       else reject(new Error(`yt-dlp download failed: ${stderr}`));

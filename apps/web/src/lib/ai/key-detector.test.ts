@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { detectKey } from './key-detector.js';
 import type { ChordEvent } from '@nuit-one/shared';
+import { describe, expect, it } from 'vitest';
+import { detectKey } from './key-detector.js';
 
 describe('key-detector', () => {
   it('returns a key result with confidence', () => {

@@ -9,9 +9,12 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "test:e2e": "turbo test:e2e",
     "db:generate": "pnpm --filter @nuit-one/db generate",
     "db:migrate": "pnpm --filter @nuit-one/db migrate",
     "db:push": "pnpm --filter @nuit-one/db push",
@@ -23,6 +26,7 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0"
   }

@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { enhance } from '$app/forms';
-  import { GlassCard, Button } from '@nuit-one/ui';
+  
+  import { Button, GlassCard } from '@nuit-one/ui';
+import { enhance } from '$app/forms';
   import type { PageData } from './$types';
 
   let { data, form }: { data: PageData; form: { error?: string; success?: boolean } | null } = $props();
@@ -40,8 +41,9 @@
           />
           <div class="flex gap-3">
             <div class="flex-1">
-              <label class="text-text-muted text-xs block mb-1">Tempo (BPM)</label>
+              <label for="newProjectTempoBpm" class="text-text-muted text-xs block mb-1">Tempo (BPM)</label>
               <input
+                id="newProjectTempoBpm"
                 type="number"
                 name="tempoBpm"
                 value="120"
@@ -51,8 +53,9 @@
               />
             </div>
             <div class="flex-1">
-              <label class="text-text-muted text-xs block mb-1">Time Signature</label>
+              <label for="newProjectTimeSig" class="text-text-muted text-xs block mb-1">Time Signature</label>
               <select
+                id="newProjectTimeSig"
                 name="timeSignature"
                 class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-neon-cyan focus:outline-none"
               >

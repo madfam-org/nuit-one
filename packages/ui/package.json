@@ -14,7 +14,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
-    "lint": "echo 'no linter configured'"
+    "lint": "biome check . && svelte-check --tsconfig ./tsconfig.json"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

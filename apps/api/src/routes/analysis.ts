@@ -1,24 +1,12 @@
-import { Hono } from 'hono';
-import { readFile } from 'node:fs/promises';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createDb } from '@nuit-one/db';
 import { schema } from '@nuit-one/db';
 import { eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { ANALYSIS_VERSION, analyzeAudio, parseWav } from '../lib/analysis.js';
 import { createJob, getJob, updateJob } from '../lib/job-manager.js';
 import { downloadFile } from '../lib/storage.js';
-import { analyzeAudio, parseWav, ANALYSIS_VERSION } from '../lib/analysis.js';
-
-let _db: ReturnType<typeof createDb>;
-function getDb() {
-  if (!_db) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL environment variable is required');
-    _db = createDb(url);
-  }
-  return _db;
-}
 
 export const analysisRoutes = new Hono();
 
@@ -29,7 +17,7 @@ analysisRoutes.post('/:trackId', async (c) => {
 
   if (!trackId) return c.json({ error: 'Missing trackId' }, 400);
 
-  const db = getDb();
+  const db = c.get('db');
 
   // Verify track exists and has an audio file
   const track = await db.query.tracks.findFirst({
@@ -73,9 +61,7 @@ analysisRoutes.post('/:trackId', async (c) => {
       // Estimate difficulty from chord complexity and tempo
       const uniqueChords = new Set(result.chords.map((ch) => ch.label)).size;
       const avgChordDuration =
-        result.chords.length > 0
-          ? result.chords.reduce((s, ch) => s + ch.duration, 0) / result.chords.length
-          : 4;
+        result.chords.length > 0 ? result.chords.reduce((s, ch) => s + ch.duration, 0) / result.chords.length : 4;
       let difficultyTier: 'easy' | 'medium' | 'hard' | 'expert';
       if (uniqueChords <= 3 && avgChordDuration > 2) {
         difficultyTier = 'easy';
@@ -139,7 +125,7 @@ analysisRoutes.get('/:trackId', async (c) => {
   c.get('auth'); // verify authenticated
   const trackId = c.req.param('trackId');
 
-  const db = getDb();
+  const db = c.get('db');
   const row = await db.query.trackAnalysis.findFirst({
     where: eq(schema.trackAnalysis.trackId, trackId),
   });

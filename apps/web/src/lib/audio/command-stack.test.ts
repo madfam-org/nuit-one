@@ -1,7 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { CommandStack, type Command } from './command-stack.js';
+import { describe, expect, it, vi } from 'vitest';
+import { type Command, CommandStack } from './command-stack.js';
 
-function mockCommand(desc = 'test'): Command & { executeFn: ReturnType<typeof vi.fn>; undoFn: ReturnType<typeof vi.fn> } {
+function mockCommand(
+  desc = 'test',
+): Command & { executeFn: ReturnType<typeof vi.fn>; undoFn: ReturnType<typeof vi.fn> } {
   const executeFn = vi.fn();
   const undoFn = vi.fn();
   return {

@@ -18,6 +18,7 @@ export class PitchDetector {
   private _currentPitch = 0;
   private _currentMidiNote = -1;
   private _confidence = 0;
+  private _rms = 0;
   private rafId: number | null = null;
   private minFreq: number;
   private maxFreq: number;
@@ -56,7 +57,9 @@ export class PitchDetector {
     this._running = false;
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this.source?.disconnect();
-    this.stream?.getTracks().forEach((t) => t.stop());
+    this.stream?.getTracks().forEach((t) => {
+      t.stop();
+    });
     this.stream = null;
     this.source = null;
   }
@@ -72,6 +75,7 @@ export class PitchDetector {
       rms += this.buffer[i]! * this.buffer[i]!;
     }
     rms = Math.sqrt(rms / this.buffer.length);
+    this._rms = rms;
 
     if (rms < 0.01) {
       // Too quiet — no pitch detected
@@ -145,10 +149,24 @@ export class PitchDetector {
     return { frequency: 0, confidence: 0 };
   }
 
-  get currentPitch(): number { return this._currentPitch; }
-  get currentMidiNote(): number { return this._currentMidiNote; }
-  get confidence(): number { return this._confidence; }
-  get running(): boolean { return this._running; }
+  get currentPitch(): number {
+    return this._currentPitch;
+  }
+  get currentMidiNote(): number {
+    return this._currentMidiNote;
+  }
+  get confidence(): number {
+    return this._confidence;
+  }
+  get running(): boolean {
+    return this._running;
+  }
+  /** Current RMS amplitude mapped to MIDI velocity (0-127) */
+  get currentAmplitude(): number {
+    // Map RMS (typically 0-0.5 for microphone input) to 0-127
+    // Clamp to prevent overflow
+    return Math.min(127, Math.round(this._rms * 254));
+  }
 }
 
 /** Convert frequency in Hz to nearest MIDI note number */
@@ -159,7 +177,7 @@ export function frequencyToMidi(freq: number): number {
 
 /** Convert MIDI note number to frequency in Hz */
 export function midiToFrequency(midi: number): number {
-  return 440 * Math.pow(2, (midi - 69) / 12);
+  return 440 * 2 ** ((midi - 69) / 12);
 }
 
 /** Get note name from MIDI note number */

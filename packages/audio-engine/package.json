@@ -10,7 +10,7 @@
     "build:wasm": "bash build.sh",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "lint": "echo 'no linter configured'"
+    "lint": "biome check ."
   },
   "devDependencies": {
     "typescript": "^5.7.0",

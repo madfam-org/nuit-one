@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import type { NoteEvent, HitJudgment } from '@nuit-one/shared';
+  
+  import type { HitJudgment, NoteEvent } from '@nuit-one/shared';
+import { onDestroy, onMount } from 'svelte';
   import { midiToNoteName } from '$lib/audio/pitch-detector.js';
 
   interface Props {

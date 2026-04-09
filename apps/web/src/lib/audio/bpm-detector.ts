@@ -16,7 +16,7 @@ export function detectBPM(buffer: AudioBuffer): number {
   // Autocorrelation to find periodicity — lags in frame units
   const onsetRate = sampleRate / hopSize; // frames per second
   const minLag = Math.floor((60 / 200) * onsetRate); // 200 BPM
-  const maxLag = Math.floor((60 / 60) * onsetRate);  // 60 BPM
+  const maxLag = Math.floor((60 / 60) * onsetRate); // 60 BPM
 
   const correlation = autocorrelate(envelope, minLag, maxLag);
 

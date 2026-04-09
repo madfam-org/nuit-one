@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
 
   interface Props {
     peaks: Float32Array | null;
@@ -147,14 +147,27 @@
   });
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="waveform-container"
+  role="slider"
+  tabindex={0}
+  aria-label="Waveform seek position"
+  aria-valuemin={0}
+  aria-valuemax={duration}
+  aria-valuenow={currentTime}
   onclick={handleClick}
   onmousedown={handleMouseDown}
   onmousemove={handleMouseMove}
   onmouseup={handleMouseUp}
+  onkeydown={(e) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (onSeek && duration > 0) onSeek(Math.max(0, currentTime - 5));
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (onSeek && duration > 0) onSeek(Math.min(duration, currentTime + 5));
+    }
+  }}
 >
   <canvas bind:this={canvas} class="waveform-canvas"></canvas>
 </div>

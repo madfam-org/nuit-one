@@ -258,9 +258,15 @@ export class StemPlayer {
     this._loopEnd = null;
   }
 
-  get loopStart(): number | null { return this._loopStart; }
-  get loopEnd(): number | null { return this._loopEnd; }
-  get isLooping(): boolean { return this._loopStart !== null && this._loopEnd !== null; }
+  get loopStart(): number | null {
+    return this._loopStart;
+  }
+  get loopEnd(): number | null {
+    return this._loopEnd;
+  }
+  get isLooping(): boolean {
+    return this._loopStart !== null && this._loopEnd !== null;
+  }
 
   get currentTime(): number {
     if (!this._isPlaying) return this._offset;
@@ -275,10 +281,24 @@ export class StemPlayer {
     return this._isPlaying;
   }
 
-  getStemState(name: string): { volume: number; muted: boolean; pan: number; eqSettings: { low: number; mid: number; high: number }; reverbAmount: number } | undefined {
+  getStemState(name: string):
+    | {
+        volume: number;
+        muted: boolean;
+        pan: number;
+        eqSettings: { low: number; mid: number; high: number };
+        reverbAmount: number;
+      }
+    | undefined {
     const s = this.stems.get(name);
     if (!s) return undefined;
-    return { volume: s.volume, muted: s.muted, pan: s.pan, eqSettings: { ...s.eqSettings }, reverbAmount: s.reverbAmount };
+    return {
+      volume: s.volume,
+      muted: s.muted,
+      pan: s.pan,
+      eqSettings: { ...s.eqSettings },
+      reverbAmount: s.reverbAmount,
+    };
   }
 
   getBuffer(name: string): AudioBuffer | undefined {
@@ -305,7 +325,11 @@ export class StemPlayer {
     for (const [, stem] of this.stems) {
       if (stem.source) {
         stem.source.onended = null;
-        try { stem.source.stop(); } catch { /* already stopped */ }
+        try {
+          stem.source.stop();
+        } catch {
+          /* already stopped */
+        }
         stem.source.disconnect();
         stem.source = null;
       }

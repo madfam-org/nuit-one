@@ -1,7 +1,8 @@
 <script lang="ts">
-  import AudioPlayer from '$lib/components/AudioPlayer.svelte';
+  
   import { Button } from '@nuit-one/ui';
   import { detectBPM } from '$lib/audio/bpm-detector.js';
+import AudioPlayer from '$lib/components/AudioPlayer.svelte';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -47,7 +48,7 @@
         <Button variant="ghost">Stats</Button>
       </a>
       {#if hasNotes}
-        <a href="/tracks/{data.track.id}/play">
+        <a href="/perform/{data.track.id}">
           <Button variant="primary">Play Mode</Button>
         </a>
       {/if}

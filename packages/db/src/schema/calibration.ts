@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, real, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 export const calibrationProfiles = pgTable('calibration_profiles', {
   id: uuid('id').primaryKey().defaultRandom(),

@@ -10,11 +10,14 @@ export interface WorkerResult<T = unknown> {
 
 export class WorkerManager {
   private worker: Worker | null = null;
-  private pending = new Map<string, {
-    resolve: (value: unknown) => void;
-    reject: (reason: unknown) => void;
-    onProgress?: (progress: number) => void;
-  }>();
+  private pending = new Map<
+    string,
+    {
+      resolve: (value: unknown) => void;
+      reject: (reason: unknown) => void;
+      onProgress?: (progress: number) => void;
+    }
+  >();
 
   constructor(private workerUrl: string) {}
 
@@ -62,7 +65,7 @@ export class WorkerManager {
         reject,
         onProgress,
       });
-      worker.postMessage({ type, payload: { ...payload as object, id } }, transferables);
+      worker.postMessage({ type, payload: { ...(payload as object), id } }, transferables);
     });
   }
 

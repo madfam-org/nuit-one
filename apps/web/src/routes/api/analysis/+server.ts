@@ -1,7 +1,7 @@
-import { json, error } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
+import { error, json } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url }) => {

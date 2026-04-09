@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { frequencyToMidi, midiToFrequency, midiToNoteName, PitchDetector } from './pitch-detector.js';
 
 describe('frequencyToMidi', () => {
@@ -134,9 +134,9 @@ describe('midiToNoteName', () => {
   });
 
   it('handles bass guitar range notes', () => {
-    expect(midiToNoteName(28)).toBe('E1');   // Low E
-    expect(midiToNoteName(33)).toBe('A1');   // A string
-    expect(midiToNoteName(38)).toBe('D2');   // D string
-    expect(midiToNoteName(43)).toBe('G2');   // G string
+    expect(midiToNoteName(28)).toBe('E1'); // Low E
+    expect(midiToNoteName(33)).toBe('A1'); // A string
+    expect(midiToNoteName(38)).toBe('D2'); // D string
+    expect(midiToNoteName(43)).toBe('G2'); // G string
   });
 });

@@ -4,35 +4,35 @@
 // --- Chord Detection ---
 
 const CHORD_TEMPLATES = {
-  'C':   [1,0,0,0,1,0,0,1,0,0,0,0],
-  'C#':  [0,1,0,0,0,1,0,0,1,0,0,0],
-  'D':   [0,0,1,0,0,0,1,0,0,1,0,0],
-  'D#':  [0,0,0,1,0,0,0,1,0,0,1,0],
-  'E':   [0,0,0,0,1,0,0,0,1,0,0,1],
-  'F':   [1,0,0,0,0,1,0,0,0,1,0,0],
-  'F#':  [0,1,0,0,0,0,1,0,0,0,1,0],
-  'G':   [0,0,1,0,0,0,0,1,0,0,0,1],
-  'G#':  [1,0,0,1,0,0,0,0,1,0,0,0],
-  'A':   [0,1,0,0,1,0,0,0,0,1,0,0],
-  'A#':  [0,0,1,0,0,1,0,0,0,0,1,0],
-  'B':   [0,0,0,1,0,0,1,0,0,0,0,1],
-  'Cm':  [1,0,0,1,0,0,0,1,0,0,0,0],
-  'C#m': [0,1,0,0,1,0,0,0,1,0,0,0],
-  'Dm':  [0,0,1,0,0,1,0,0,0,1,0,0],
-  'D#m': [0,0,0,1,0,0,1,0,0,0,1,0],
-  'Em':  [0,0,0,0,1,0,0,1,0,0,0,1],
-  'Fm':  [1,0,0,0,0,1,0,0,1,0,0,0],
-  'F#m': [0,1,0,0,0,0,1,0,0,1,0,0],
-  'Gm':  [0,0,1,0,0,0,0,1,0,0,0,1],
-  'G#m': [1,0,0,1,0,0,0,0,1,0,0,0],
-  'Am':  [0,1,0,0,1,0,0,0,0,1,0,0],
-  'A#m': [0,0,1,0,0,1,0,0,0,0,1,0],
-  'Bm':  [0,0,0,1,0,0,1,0,0,0,0,1],
+  C: [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+  'C#': [0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  D: [0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+  'D#': [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+  E: [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+  F: [1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+  'F#': [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+  G: [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+  'G#': [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+  A: [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+  'A#': [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+  B: [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
+  Cm: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  'C#m': [0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+  Dm: [0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0],
+  'D#m': [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0],
+  Em: [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+  Fm: [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  'F#m': [0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+  Gm: [0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+  'G#m': [1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
+  Am: [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+  'A#m': [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+  Bm: [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1],
 };
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const MAJOR_PROFILE = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
-const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+const MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
 
 function computeChroma(samples, sampleRate) {
   const chroma = new Array(12).fill(0);
@@ -42,7 +42,8 @@ function computeChroma(samples, sampleRate) {
     const freq = (bin * sampleRate) / n;
     if (freq < 65 || freq > 2000) continue;
 
-    let real = 0, imag = 0;
+    let real = 0,
+      imag = 0;
     for (let i = 0; i < n; i++) {
       const angle = (2 * Math.PI * bin * i) / n;
       real += samples[i] * Math.cos(angle);
@@ -60,11 +61,15 @@ function computeChroma(samples, sampleRate) {
 }
 
 function matchChord(chroma) {
-  let best = 'N', bestScore = -Infinity;
+  let best = 'N',
+    bestScore = -Infinity;
   for (const [name, template] of Object.entries(CHORD_TEMPLATES)) {
     let score = 0;
     for (let i = 0; i < 12; i++) score += chroma[i] * template[i];
-    if (score > bestScore) { bestScore = score; best = name; }
+    if (score > bestScore) {
+      bestScore = score;
+      best = name;
+    }
   }
   return best;
 }
@@ -74,7 +79,8 @@ function detectChords(samples, sampleRate) {
   const frameSize = Math.min(4096, Math.floor(sampleRate * 1.0));
   const numFrames = Math.floor((samples.length - frameSize) / hopSize);
   const chords = [];
-  let lastChord = '', chordStart = 0;
+  let lastChord = '',
+    chordStart = 0;
 
   for (let f = 0; f <= numFrames; f++) {
     const offset = f * hopSize;
@@ -86,7 +92,10 @@ function detectChords(samples, sampleRate) {
       const duration = (f * hopSize - chordStart) / sampleRate;
       if (duration > 0.25) chords.push({ time, duration, label: lastChord });
     }
-    if (chord !== lastChord) { lastChord = chord; chordStart = offset; }
+    if (chord !== lastChord) {
+      lastChord = chord;
+      chordStart = offset;
+    }
   }
 
   if (lastChord) {
@@ -103,10 +112,15 @@ function pearsonCorrelation(a, b) {
   const n = a.length;
   const meanA = a.reduce((s, v) => s + v, 0) / n;
   const meanB = b.reduce((s, v) => s + v, 0) / n;
-  let num = 0, denA = 0, denB = 0;
+  let num = 0,
+    denA = 0,
+    denB = 0;
   for (let i = 0; i < n; i++) {
-    const da = a[i] - meanA, db = b[i] - meanB;
-    num += da * db; denA += da * da; denB += db * db;
+    const da = a[i] - meanA,
+      db = b[i] - meanB;
+    num += da * db;
+    denA += da * da;
+    denB += db * db;
   }
   const den = Math.sqrt(denA * denB);
   return den === 0 ? 0 : num / den;
@@ -121,13 +135,20 @@ function detectKey(chords) {
     if (rootIdx >= 0) chromaProfile[rootIdx] += chord.duration;
   }
 
-  let bestKey = 'C major', bestCorr = -Infinity;
+  let bestKey = 'C major',
+    bestCorr = -Infinity;
   for (let shift = 0; shift < 12; shift++) {
     const rotated = chromaProfile.map((_, i) => chromaProfile[(i + shift) % 12]);
     const corrMaj = pearsonCorrelation(rotated, MAJOR_PROFILE);
-    if (corrMaj > bestCorr) { bestCorr = corrMaj; bestKey = `${NOTE_NAMES[shift]} major`; }
+    if (corrMaj > bestCorr) {
+      bestCorr = corrMaj;
+      bestKey = `${NOTE_NAMES[shift]} major`;
+    }
     const corrMin = pearsonCorrelation(rotated, MINOR_PROFILE);
-    if (corrMin > bestCorr) { bestCorr = corrMin; bestKey = `${NOTE_NAMES[shift]} minor`; }
+    if (corrMin > bestCorr) {
+      bestCorr = corrMin;
+      bestKey = `${NOTE_NAMES[shift]} minor`;
+    }
   }
   return { key: bestKey, confidence: Math.max(0, bestCorr) };
 }
@@ -135,7 +156,8 @@ function detectKey(chords) {
 // --- BPM Detection ---
 
 function detectBpm(samples, sampleRate) {
-  const frameSize = 1024, hopSize = 512;
+  const frameSize = 1024,
+    hopSize = 512;
   const numFrames = Math.floor((samples.length - frameSize) / hopSize);
   if (numFrames < 2) return 120;
 
@@ -149,23 +171,31 @@ function detectBpm(samples, sampleRate) {
     prevEnergy = energy;
   }
 
-  const minLag = Math.floor((60 / 200) * sampleRate / hopSize);
-  const maxLag = Math.floor((60 / 60) * sampleRate / hopSize);
-  let bestLag = minLag, bestCorr = -Infinity;
+  const minLag = Math.floor(((60 / 200) * sampleRate) / hopSize);
+  const maxLag = Math.floor(((60 / 60) * sampleRate) / hopSize);
+  let bestLag = minLag,
+    bestCorr = -Infinity;
 
   for (let lag = minLag; lag <= Math.min(maxLag, numFrames - 1); lag++) {
-    let corr = 0, count = 0;
-    for (let i = 0; i < numFrames - lag; i++) { corr += envelope[i] * envelope[i + lag]; count++; }
+    let corr = 0,
+      count = 0;
+    for (let i = 0; i < numFrames - lag; i++) {
+      corr += envelope[i] * envelope[i + lag];
+      count++;
+    }
     corr /= count || 1;
-    if (corr > bestCorr) { bestCorr = corr; bestLag = lag; }
+    if (corr > bestCorr) {
+      bestCorr = corr;
+      bestLag = lag;
+    }
   }
 
-  return Math.round(60 / ((bestLag * hopSize) / sampleRate) * 10) / 10;
+  return Math.round((60 / ((bestLag * hopSize) / sampleRate)) * 10) / 10;
 }
 
 // --- Message Handler ---
 
-self.onmessage = function (e) {
+self.onmessage = (e) => {
   const { type, payload } = e.data;
   const { id } = payload;
 

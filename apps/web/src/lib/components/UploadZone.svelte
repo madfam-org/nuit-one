@@ -109,11 +109,12 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="upload-zone"
   class:dragging
   class:uploading
+  role="region"
+  aria-label="Audio file upload area"
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}
   ondrop={handleDrop}

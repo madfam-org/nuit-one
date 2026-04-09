@@ -1,7 +1,7 @@
-import { error } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
-import { eq, and } from 'drizzle-orm';
+import { error } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -20,10 +20,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   });
 
   // Get stems for this track
-  const trackStems = await db
-    .select()
-    .from(schema.stems)
-    .where(eq(schema.stems.trackId, track.id));
+  const trackStems = await db.select().from(schema.stems).where(eq(schema.stems.trackId, track.id));
 
   // Build proxy URLs for each stem
   const stemUrls: Record<string, string> = {};

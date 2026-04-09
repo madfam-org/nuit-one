@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Metronome } from './metronome.js';
 
 function createMockContext(): AudioContext {
@@ -16,8 +16,12 @@ function createMockContext(): AudioContext {
   };
 
   return {
-    get currentTime() { return _currentTime; },
-    set currentTime(v: number) { _currentTime = v; },
+    get currentTime() {
+      return _currentTime;
+    },
+    set currentTime(v: number) {
+      _currentTime = v;
+    },
     destination: {} as AudioDestinationNode,
     createOscillator: vi.fn(() => mockOsc),
     createGain: vi.fn(() => mockGain),

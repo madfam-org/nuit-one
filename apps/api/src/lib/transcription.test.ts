@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { parseNoteEventsCsv } from './transcription.js';
 
 describe('parseNoteEventsCsv', () => {
@@ -46,10 +46,7 @@ describe('parseNoteEventsCsv', () => {
   });
 
   it('rounds pitch and velocity to integers', () => {
-    const csv = [
-      'start_time_s,end_time_s,pitch_midi,velocity,pitch_bend',
-      '0.0,1.0,44.7,79.6,0.0',
-    ].join('\n');
+    const csv = ['start_time_s,end_time_s,pitch_midi,velocity,pitch_bend', '0.0,1.0,44.7,79.6,0.0'].join('\n');
 
     const notes = parseNoteEventsCsv(csv);
     expect(notes[0]!.pitch).toBe(45);

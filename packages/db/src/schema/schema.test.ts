@@ -1,14 +1,7 @@
-import { describe, it, expect } from 'vitest';
 import { getTableColumns } from 'drizzle-orm';
-import {
-  projects,
-  tracks,
-  stems,
-  performances,
-  calibrationProfiles,
-  trackAnalysis,
-} from './index.js';
+import { describe, expect, it } from 'vitest';
 import { createDb, schema } from '../index.js';
+import { calibrationProfiles, performances, projects, stems, trackAnalysis, tracks } from './index.js';
 
 /**
  * Helper: extract the inline foreign keys Drizzle stores on PgTable instances.
@@ -76,9 +69,19 @@ describe('tracks table columns', () => {
   it('has the expected columns', () => {
     expect(Object.keys(cols).sort()).toEqual(
       [
-        'id', 'projectId', 'userId', 'title', 'instrument', 'status',
-        'r2Key', 'originalFilename', 'fileSizeBytes', 'contentType',
-        'assignedTo', 'sortOrder', 'createdAt',
+        'id',
+        'projectId',
+        'userId',
+        'title',
+        'instrument',
+        'status',
+        'r2Key',
+        'originalFilename',
+        'fileSizeBytes',
+        'contentType',
+        'assignedTo',
+        'sortOrder',
+        'createdAt',
       ].sort(),
     );
   });
@@ -186,16 +189,7 @@ describe('trackAnalysis table columns', () => {
 
   it('has the expected columns', () => {
     expect(Object.keys(cols).sort()).toEqual(
-      [
-        'id',
-        'trackId',
-        'key',
-        'bpmDetected',
-        'chords',
-        'difficultyTier',
-        'analysisVersion',
-        'createdAt',
-      ].sort(),
+      ['id', 'trackId', 'key', 'bpmDetected', 'chords', 'difficultyTier', 'analysisVersion', 'createdAt'].sort(),
     );
   });
 

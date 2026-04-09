@@ -2,9 +2,9 @@ import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { downloadFile } from './storage.js';
-import { updateJob } from './job-manager.js';
 import type { NoteEvent } from '@nuit-one/shared';
+import { updateJob } from './job-manager.js';
+import { downloadFile } from './storage.js';
 
 /** Parse Basic Pitch 0.4+ note-events CSV (start_time_s,end_time_s,pitch_midi,velocity,...) */
 export function parseNoteEventsCsv(csvContent: string): NoteEvent[] {
@@ -27,10 +27,7 @@ export function parseNoteEventsCsv(csvContent: string): NoteEvent[] {
   return notes;
 }
 
-export async function runTranscription(
-  jobId: string,
-  r2Key: string,
-): Promise<NoteEvent[]> {
+export async function runTranscription(jobId: string, r2Key: string): Promise<NoteEvent[]> {
   const workDir = await mkdtemp(join(tmpdir(), 'nuit-pitch-'));
   const inputPath = join(workDir, 'input.wav');
   const outputDir = join(workDir, 'output');
@@ -49,7 +46,9 @@ export async function runTranscription(
       const proc = spawn('basic-pitch', ['--save-note-events', outputDir, inputPath]);
 
       let stderr = '';
-      proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
+      proc.stderr.on('data', (chunk: Buffer) => {
+        stderr += chunk.toString();
+      });
 
       proc.on('close', (code) => {
         if (code === 0) resolve();

@@ -27,8 +27,9 @@
 <div class="eq-controls">
   {#each bands as band}
     <div class="eq-band">
-      <label class="eq-label">{band.label}</label>
+      <label class="eq-label" for="eq-{stemName}-{band.key}">{band.label}</label>
       <input
+        id="eq-{stemName}-{band.key}"
         type="range"
         min="-12"
         max="12"

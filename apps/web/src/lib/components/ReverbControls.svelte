@@ -29,8 +29,9 @@
 
 <div class="reverb-controls">
   <div class="reverb-amount">
-    <label class="reverb-label">Reverb</label>
+    <label class="reverb-label" for="reverb-{stemName}">Reverb</label>
     <input
+      id="reverb-{stemName}"
       type="range"
       min="0"
       max="1"
@@ -46,6 +47,7 @@
     {#each IR_PRESETS as preset}
       <button
         class="preset-btn" class:active={selectedPreset === preset}
+        aria-pressed={selectedPreset === preset}
         onclick={() => loadPreset(preset)}
       >{preset}</button>
     {/each}

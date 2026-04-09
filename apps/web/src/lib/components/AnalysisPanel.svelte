@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { GlassCard, Button, NeonBadge } from '@nuit-one/ui';
-  import KeyDisplay from './KeyDisplay.svelte';
-  import DifficultyBadge from './DifficultyBadge.svelte';
-  import ChordChart from './ChordChart.svelte';
+  import { Button, GlassCard, NeonBadge } from '@nuit-one/ui';
   import type { AnalysisStore } from '$lib/stores/analysis.svelte.js';
+  import ChordChart from './ChordChart.svelte';
+  import DifficultyBadge from './DifficultyBadge.svelte';
+  import KeyDisplay from './KeyDisplay.svelte';
 
   interface Props {
     analysis: AnalysisStore;

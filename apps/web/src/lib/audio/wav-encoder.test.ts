@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { encodeWav } from './wav-encoder.js';
 
 function createMockBuffer(length: number, channels: number, sampleRate: number): AudioBuffer {

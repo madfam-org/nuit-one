@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { INSTRUMENT_LABELS, INSTRUMENT_COLORS } from '@nuit-one/shared';
+  
   import type { PlayableInstrument } from '@nuit-one/shared';
+import { INSTRUMENT_COLORS, INSTRUMENT_LABELS } from '@nuit-one/shared';
   import type { AudioInputDevice } from '$lib/audio/device-manager.js';
 
   interface Props {
@@ -39,7 +40,7 @@
   <div class="slot-header">
     <span class="player-label">Player {playerIndex + 1}</span>
     {#if removable && onRemove}
-      <button class="remove-btn" onclick={onRemove}>&times;</button>
+      <button class="remove-btn" aria-label="Remove player {playerIndex + 1}" onclick={onRemove}>&times;</button>
     {/if}
   </div>
 

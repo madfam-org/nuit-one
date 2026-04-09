@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { analyzeDifficulty } from './difficulty-analyzer.js';
 import type { NoteEvent } from '@nuit-one/shared';
+import { describe, expect, it } from 'vitest';
+import { analyzeDifficulty } from './difficulty-analyzer.js';
 
 describe('difficulty-analyzer', () => {
   it('returns easy for empty notes', () => {

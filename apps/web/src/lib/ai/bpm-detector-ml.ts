@@ -57,8 +57,8 @@ function autocorrelationBpm(samples: Float32Array, sampleRate: number): number {
   }
 
   // Autocorrelation
-  const minLag = Math.floor((60 / 200) * sampleRate / hopSize);
-  const maxLag = Math.floor((60 / 60) * sampleRate / hopSize);
+  const minLag = Math.floor(((60 / 200) * sampleRate) / hopSize);
+  const maxLag = Math.floor(((60 / 60) * sampleRate) / hopSize);
 
   let bestLag = minLag;
   let bestCorr = -Infinity;
@@ -120,8 +120,8 @@ function spectralFluxBpm(samples: Float32Array, sampleRate: number): number {
   }
 
   // Autocorrelation on flux
-  const minLag = Math.floor((60 / 200) * sampleRate / hopSize);
-  const maxLag = Math.floor((60 / 60) * sampleRate / hopSize);
+  const minLag = Math.floor(((60 / 200) * sampleRate) / hopSize);
+  const maxLag = Math.floor(((60 / 60) * sampleRate) / hopSize);
 
   let bestLag = minLag;
   let bestCorr = -Infinity;

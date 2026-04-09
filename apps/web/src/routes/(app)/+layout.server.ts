@@ -1,11 +1,15 @@
-import type { LayoutServerLoad } from './$types';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
+import { error } from '@sveltejs/kit';
 import { desc, eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
+import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
-  const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
-  const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
+  const userId = locals.userId;
+  const workspaceId = locals.workspaceId;
+  if (!userId) {
+    throw error(401, 'Unauthorized');
+  }
 
   const recentProjects = await db
     .select({

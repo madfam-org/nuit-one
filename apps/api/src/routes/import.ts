@@ -1,24 +1,13 @@
-import { Hono } from 'hono';
 import { rm } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { createJob, updateJob } from '../lib/job-manager.js';
-import { isValidYouTubeUrl, downloadYouTubeAudio } from '../lib/youtube.js';
-import { uploadFile } from '../lib/storage.js';
-import { runDemucs } from '../lib/demucs.js';
-import { runTranscription } from '../lib/transcription.js';
-import { createDb } from '@nuit-one/db';
 import { schema } from '@nuit-one/db';
 import { eq } from 'drizzle-orm';
-
-let _db: ReturnType<typeof createDb>;
-function getDb() {
-  if (!_db) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error('DATABASE_URL environment variable is required');
-    _db = createDb(url);
-  }
-  return _db;
-}
+import { Hono } from 'hono';
+import { runDemucs } from '../lib/demucs.js';
+import { createJob, updateJob } from '../lib/job-manager.js';
+import { uploadFile } from '../lib/storage.js';
+import { runTranscription } from '../lib/transcription.js';
+import { downloadYouTubeAudio, isValidYouTubeUrl } from '../lib/youtube.js';
 
 export const importRoutes = new Hono();
 
@@ -46,7 +35,7 @@ importRoutes.post('/youtube', async (c) => {
       // Step 2: Create project + track in DB
       updateJob(job.id, { status: 'processing', progress: 15 });
 
-      const db = getDb();
+      const db = c.get('db');
       let project = await db.query.projects.findFirst({
         where: eq(schema.projects.workspaceId, auth.workspaceId!),
       });

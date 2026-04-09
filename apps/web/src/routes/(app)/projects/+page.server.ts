@@ -1,12 +1,13 @@
-import { error, redirect } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
-import { eq, desc, sql } from 'drizzle-orm';
-import type { PageServerLoad, Actions } from './$types';
+import { error, redirect } from '@sveltejs/kit';
+import { desc, eq, sql } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
-  const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
+  if (!locals.userId) throw error(401, 'Unauthorized');
+  const userId = locals.userId;
+  const workspaceId = locals.workspaceId ?? '';
 
   const projects = await db
     .select({
@@ -15,7 +16,9 @@ export const load: PageServerLoad = async ({ locals }) => {
       tempoBpm: schema.projects.tempoBpm,
       timeSignature: schema.projects.timeSignature,
       createdAt: schema.projects.createdAt,
-      trackCount: sql<number>`(select count(*) from tracks where tracks.project_id = ${schema.projects.id})`.as('track_count'),
+      trackCount: sql<number>`(select count(*) from tracks where tracks.project_id = ${schema.projects.id})`.as(
+        'track_count',
+      ),
     })
     .from(schema.projects)
     .where(eq(schema.projects.workspaceId, workspaceId))
@@ -35,8 +38,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 export const actions: Actions = {
   create: async ({ request, locals }) => {
-    const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
-    const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
+    if (!locals.userId) return { error: 'Unauthorized' };
+    const userId = locals.userId;
+    const workspaceId = locals.workspaceId ?? '';
     const formData = await request.formData();
     const name = (formData.get('name') as string)?.trim();
     const tempoBpm = parseInt(formData.get('tempoBpm') as string, 10) || 120;
@@ -56,7 +60,7 @@ export const actions: Actions = {
       })
       .returning();
 
-    throw redirect(303, `/projects/${project!.id}`);
+    throw redirect(303, `/studio/${project!.id}`);
   },
 
   rename: async ({ request }) => {
@@ -66,10 +70,7 @@ export const actions: Actions = {
 
     if (!id || !name) return { error: 'ID and name are required' };
 
-    await db
-      .update(schema.projects)
-      .set({ name })
-      .where(eq(schema.projects.id, id));
+    await db.update(schema.projects).set({ name }).where(eq(schema.projects.id, id));
 
     return { success: true };
   },

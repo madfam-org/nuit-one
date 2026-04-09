@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from '@nuit-one/ui';
-  import type { PlayerStore } from '$lib/stores/player.svelte.js';
   import { Metronome } from '$lib/audio/metronome.js';
+  import type { PlayerStore } from '$lib/stores/player.svelte.js';
 
   interface Props {
     player: PlayerStore;
@@ -77,6 +77,7 @@
     <Button
       variant="ghost"
       size="sm"
+      aria-label={player.isPlaying ? 'Pause' : 'Play'}
       onclick={() => player.togglePlayback()}
     >
       {#if player.isPlaying}
@@ -94,6 +95,7 @@
     <Button
       variant="ghost"
       size="sm"
+      aria-label="Stop"
       onclick={() => player.stop()}
     >
       <svg viewBox="0 0 24 24" fill="currentColor" class="icon">
@@ -105,6 +107,7 @@
       <Button
         variant="ghost"
         size="sm"
+        aria-label={player.isLooping ? 'Disable loop' : 'Enable loop'}
         onclick={() => player.isLooping ? player.clearLoopRegion() : player.setLoopRegion(0, player.duration)}
       >
         <span class="loop-label" class:active={player.isLooping}>L</span>
@@ -121,6 +124,7 @@
       <Button
         variant="ghost"
         size="sm"
+        aria-label={metronomeActive ? 'Disable metronome' : 'Enable metronome'}
         onclick={toggleMetronome}
       >
         <span class="metronome-label" class:active={metronomeActive}>
@@ -132,9 +136,25 @@
 
   <span class="time">{formatTime(player.currentTime)}</span>
 
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="seek-bar" onclick={handleSeek}>
+  <div
+    class="seek-bar"
+    role="slider"
+    tabindex={0}
+    aria-label="Seek position"
+    aria-valuemin={0}
+    aria-valuemax={player.duration}
+    aria-valuenow={player.currentTime}
+    onclick={handleSeek}
+    onkeydown={(e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        player.seek(Math.max(0, player.currentTime - 5));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        player.seek(Math.min(player.duration, player.currentTime + 5));
+      }
+    }}
+  >
     <div class="seek-track">
       <div
         class="seek-fill"

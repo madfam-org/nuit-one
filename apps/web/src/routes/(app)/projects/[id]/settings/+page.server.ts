@@ -1,13 +1,14 @@
-import { error } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
+import { error } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
-import type { PageServerLoad, Actions } from './$types';
+import { db } from '$lib/server/db.js';
+import type { Actions, PageServerLoad } from './$types';
 
 const ALLOWED_TIME_SIGNATURES = ['4/4', '3/4', '6/8', '2/4', '5/4', '7/8', '12/8'];
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-  const workspaceId = locals.workspaceId ?? '00000000-0000-0000-0000-000000000002';
+  if (!locals.userId) throw error(401, 'Unauthorized');
+  const workspaceId = locals.workspaceId ?? '';
 
   const project = await db.query.projects.findFirst({
     where: eq(schema.projects.id, params.id),
@@ -35,10 +36,7 @@ export const actions: Actions = {
       return { error: 'Tempo must be between 20 and 300 BPM' };
     }
 
-    await db
-      .update(schema.projects)
-      .set({ tempoBpm })
-      .where(eq(schema.projects.id, params.id));
+    await db.update(schema.projects).set({ tempoBpm }).where(eq(schema.projects.id, params.id));
 
     return { success: true };
   },
@@ -51,10 +49,7 @@ export const actions: Actions = {
       return { error: 'Invalid time signature' };
     }
 
-    await db
-      .update(schema.projects)
-      .set({ timeSignature })
-      .where(eq(schema.projects.id, params.id));
+    await db.update(schema.projects).set({ timeSignature }).where(eq(schema.projects.id, params.id));
 
     return { success: true };
   },

@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
-  import { GlassCard, Button } from '@nuit-one/ui';
-  import { createPlayerStore } from '$lib/stores/player.svelte.js';
+  
+  import { Button, GlassCard } from '@nuit-one/ui';
+import { onDestroy } from 'svelte';
   import { CommandStack } from '$lib/audio/command-stack.js';
-  import { VolumeChangeCommand, PanChangeCommand, MuteToggleCommand, SoloCommand } from '$lib/audio/commands.js';
+  import { MuteToggleCommand, PanChangeCommand, SoloCommand, VolumeChangeCommand } from '$lib/audio/commands.js';
   import { extractPeaks } from '$lib/audio/waveform.js';
-  import WaveformDisplay from '$lib/components/WaveformDisplay.svelte';
   import StemMixer from '$lib/components/StemMixer.svelte';
   import TransportBar from '$lib/components/TransportBar.svelte';
+  import WaveformDisplay from '$lib/components/WaveformDisplay.svelte';
+  import { createPlayerStore } from '$lib/stores/player.svelte.js';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -96,11 +97,11 @@
   <!-- Header -->
   <header class="daw-header">
     <div class="header-left">
-      <a href="/library" class="back-link">&larr;</a>
+      <a href="/library" class="back-link" aria-label="Back to library">&larr;</a>
       <h1 class="project-name">{data.project.name}</h1>
       <span class="project-meta">{data.project.tempoBpm} BPM</span>
       <span class="project-meta">{data.project.timeSignature}</span>
-      <a href="/studio/{data.project.id}/settings" class="settings-link">
+      <a href="/studio/{data.project.id}/settings" class="settings-link" aria-label="Project settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="settings-icon">
           <circle cx="12" cy="12" r="3" />
           <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />

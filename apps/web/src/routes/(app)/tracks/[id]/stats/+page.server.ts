@@ -1,11 +1,12 @@
-import { error } from '@sveltejs/kit';
-import { db } from '$lib/server/db.js';
 import { schema } from '@nuit-one/db';
-import { eq, and, desc } from 'drizzle-orm';
+import { error } from '@sveltejs/kit';
+import { and, desc, eq } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-  const userId = locals.userId ?? '00000000-0000-0000-0000-000000000001';
+  if (!locals.userId) throw error(401, 'Unauthorized');
+  const userId = locals.userId;
 
   const track = await db.query.tracks.findFirst({
     where: and(eq(schema.tracks.id, params.id), eq(schema.tracks.userId, userId)),
