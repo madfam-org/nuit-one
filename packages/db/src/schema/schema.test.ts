@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createDb, schema } from '../index.js';
 import {
   calibrationProfiles,
+  contentSources,
   performances,
   projects,
   stems,
@@ -27,7 +28,7 @@ function getInlineForeignKeys(table: object): unknown[] {
 // ---------------------------------------------------------------------------
 
 describe('schema barrel exports', () => {
-  it('exports all eight tables', () => {
+  it('exports all nine tables', () => {
     expect(projects).toBeDefined();
     expect(tracks).toBeDefined();
     expect(stems).toBeDefined();
@@ -36,6 +37,7 @@ describe('schema barrel exports', () => {
     expect(trackAnalysis).toBeDefined();
     expect(workspaceMembers).toBeDefined();
     expect(workspaceInvitations).toBeDefined();
+    expect(contentSources).toBeDefined();
   });
 
   it('exports createDb from the package entry point', () => {
@@ -51,6 +53,7 @@ describe('schema barrel exports', () => {
     expect(schema.calibrationProfiles).toBe(calibrationProfiles);
     expect(schema.workspaceMembers).toBe(workspaceMembers);
     expect(schema.workspaceInvitations).toBe(workspaceInvitations);
+    expect(schema.contentSources).toBe(contentSources);
   });
 });
 
@@ -92,11 +95,16 @@ describe('tracks table columns', () => {
         'originalFilename',
         'fileSizeBytes',
         'contentType',
+        'contentSourceId',
         'assignedTo',
         'sortOrder',
         'createdAt',
       ].sort(),
     );
+  });
+
+  it('has contentSourceId as nullable', () => {
+    expect(cols.contentSourceId.notNull).toBe(false);
   });
 
   it('has status defaulting to pending_upload', () => {
@@ -123,10 +131,15 @@ describe('stems table columns', () => {
         'sampleRate',
         'source',
         'midiData',
+        'contentSourceId',
         'createdBy',
         'createdAt',
       ].sort(),
     );
+  });
+
+  it('has contentSourceId as nullable', () => {
+    expect(cols.contentSourceId.notNull).toBe(false);
   });
 
   it('has sample_rate defaulting to 44100', () => {
@@ -283,6 +296,60 @@ describe('workspaceInvitations table columns', () => {
   });
 });
 
+describe('contentSources table columns', () => {
+  const cols = getTableColumns(contentSources);
+
+  it('has the expected columns', () => {
+    expect(Object.keys(cols).sort()).toEqual(
+      [
+        'id',
+        'workspaceId',
+        'normalizedUrl',
+        'sourceType',
+        'sourceId',
+        'originalUrl',
+        'title',
+        'artist',
+        'thumbnailUrl',
+        'durationSeconds',
+        'r2KeyPrefix',
+        'status',
+        'importedBy',
+        'lastAccessedAt',
+        'createdAt',
+      ].sort(),
+    );
+  });
+
+  it('has status defaulting to processing', () => {
+    expect(cols.status.hasDefault).toBe(true);
+  });
+
+  it('has workspaceId as not null', () => {
+    expect(cols.workspaceId.notNull).toBe(true);
+  });
+
+  it('has normalizedUrl as not null', () => {
+    expect(cols.normalizedUrl.notNull).toBe(true);
+  });
+
+  it('has title as not null', () => {
+    expect(cols.title.notNull).toBe(true);
+  });
+
+  it('has importedBy as not null', () => {
+    expect(cols.importedBy.notNull).toBe(true);
+  });
+
+  it('has artist as nullable', () => {
+    expect(cols.artist.notNull).toBe(false);
+  });
+
+  it('has sourceId as nullable', () => {
+    expect(cols.sourceId.notNull).toBe(false);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Foreign key relationships
 // ---------------------------------------------------------------------------
@@ -347,6 +414,11 @@ describe('foreign key relationships', () => {
 
   it('workspaceInvitations has no inline foreign keys (references Janua UUIDs)', () => {
     const fks = getInlineForeignKeys(workspaceInvitations);
+    expect(fks).toHaveLength(0);
+  });
+
+  it('contentSources has no inline foreign keys (references Janua UUIDs)', () => {
+    const fks = getInlineForeignKeys(contentSources);
     expect(fks).toHaveLength(0);
   });
 });

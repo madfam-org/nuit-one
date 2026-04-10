@@ -12,6 +12,13 @@
     pending_upload: 'violet',
     error: 'magenta',
   };
+
+  function formatDuration(seconds: number | null): string {
+    if (seconds == null) return '';
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
 </script>
 
 <div class="library-page">
@@ -42,11 +49,24 @@
             <a href="/tracks/{track.id}" class="list-item" data-sveltekit-preload-data>
               <div class="item-main">
                 <span class="item-title">{track.title}</span>
-                {#if track.instrument}
-                  <span class="item-meta">{track.instrument}</span>
-                {/if}
+                <span class="item-meta">
+                  {#if track.artist}
+                    {track.artist}
+                    {#if track.instrument || track.durationSeconds} &middot; {/if}
+                  {/if}
+                  {#if track.instrument}
+                    {track.instrument}
+                    {#if track.durationSeconds} &middot; {/if}
+                  {/if}
+                  {#if track.durationSeconds}
+                    {formatDuration(track.durationSeconds)}
+                  {/if}
+                </span>
               </div>
               <div class="item-end">
+                {#if track.sourceType}
+                  <NeonBadge color="violet">{track.sourceType}</NeonBadge>
+                {/if}
                 {#if track.status === 'ready' && track.hasNotes}
                   <button
                     class="quick-play-btn"

@@ -13,8 +13,8 @@ test.describe('Dashboard', () => {
     await expect(heading).toBeVisible();
   });
 
-  test('page shows YouTube import section', async ({ page }) => {
-    const heading = page.getByRole('heading', { name: /import from youtube/i });
+  test('page shows URL import section', async ({ page }) => {
+    const heading = page.getByRole('heading', { name: /import from url/i });
     await expect(heading).toBeVisible();
   });
 

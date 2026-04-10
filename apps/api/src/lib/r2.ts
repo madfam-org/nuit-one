@@ -1,7 +1,13 @@
 import { createReadStream, createWriteStream } from 'node:fs';
 import type { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 let r2Client: S3Client | null = null;
@@ -44,4 +50,30 @@ export async function uploadToR2(key: string, filePath: string, contentType: str
 export async function getDownloadUrl(key: string): Promise<string> {
   const command = new GetObjectCommand({ Bucket: bucket(), Key: key });
   return getSignedUrl(getR2Client(), command, { expiresIn: 3600 });
+}
+
+export async function deleteR2Objects(prefix: string): Promise<void> {
+  let continuationToken: string | undefined;
+
+  do {
+    const listResult = await getR2Client().send(
+      new ListObjectsV2Command({
+        Bucket: bucket(),
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    const objects = listResult.Contents;
+    if (!objects || objects.length === 0) break;
+
+    await getR2Client().send(
+      new DeleteObjectsCommand({
+        Bucket: bucket(),
+        Delete: { Objects: objects.map((o) => ({ Key: o.Key })) },
+      }),
+    );
+
+    continuationToken = listResult.IsTruncated ? listResult.NextContinuationToken : undefined;
+  } while (continuationToken);
 }

@@ -447,6 +447,27 @@ import { goto } from '$app/navigation';
     }
   }
 
+  let reimporting = $state(false);
+
+  async function reimport() {
+    if (!data.reimportUrl || reimporting) return;
+    reimporting = true;
+    try {
+      const res = await fetch('/api/import/youtube', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: data.reimportUrl }),
+      });
+      if (res.ok) {
+        goto('/library');
+      } else {
+        reimporting = false;
+      }
+    } catch {
+      reimporting = false;
+    }
+  }
+
   function replay() {
     for (const p of players) {
       p.results = null;
@@ -513,7 +534,27 @@ import { goto } from '$app/navigation';
 </script>
 
 <div class="performance-page">
-  {#if gameState === 'idle'}
+  {#if data.expired}
+    <div class="idle-screen">
+      <GlassCard padding="lg">
+        <div class="expired-content">
+          <h2 class="expired-title">Track Expired</h2>
+          <p class="expired-text">
+            This track's audio has been archived to save storage.
+            Re-import it from the original source to play again.
+          </p>
+          <div class="expired-actions">
+            {#if data.reimportUrl}
+              <Button variant="primary" disabled={reimporting} onclick={reimport}>
+                {reimporting ? 'Re-importing...' : 'Re-import Now'}
+              </Button>
+            {/if}
+            <Button variant="secondary" onclick={goBack}>Back to Library</Button>
+          </div>
+        </div>
+      </GlassCard>
+    </div>
+  {:else if gameState === 'idle'}
     <div class="idle-screen">
       <GlassCard padding="lg">
         <div class="idle-content">
@@ -732,6 +773,33 @@ import { goto } from '$app/navigation';
     color: #f59e0b;
     font-size: 0.875rem;
     margin-bottom: 1rem;
+  }
+
+  .expired-content {
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .expired-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f59e0b;
+    margin-bottom: 0.5rem;
+  }
+
+  .expired-text {
+    color: #a0a0b0;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .expired-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .player-slots {

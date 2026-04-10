@@ -17,6 +17,7 @@ export const stems = pgTable('stems', {
     enum: ['upload', 'recording', 'demucs', 'basic_pitch'],
   }),
   midiData: jsonb('midi_data'),
+  contentSourceId: uuid('content_source_id'),
   createdBy: uuid('created_by').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

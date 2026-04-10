@@ -13,7 +13,12 @@ export interface StemResult {
   fileSizeBytes: number;
 }
 
-export async function runDemucs(jobId: string, trackId: string, r2Key: string): Promise<StemResult[]> {
+export async function runDemucs(
+  jobId: string,
+  trackId: string,
+  r2Key: string,
+  r2KeyPrefix?: string,
+): Promise<StemResult[]> {
   const workDir = await mkdtemp(join(tmpdir(), 'nuit-demucs-'));
   const inputPath = join(workDir, 'input.wav');
   const outputDir = join(workDir, 'output');
@@ -68,7 +73,9 @@ export async function runDemucs(jobId: string, trackId: string, r2Key: string): 
       if (!VALID_STEMS.has(stemName)) continue;
       const stemType = stemName as DemucsStemType;
       const filePath = join(stemDir, file);
-      const r2StemKey = `tracks/${trackId}/stems/${stemType}.wav`;
+      const r2StemKey = r2KeyPrefix
+        ? `${r2KeyPrefix}/stems/${stemType}.wav`
+        : `tracks/${trackId}/stems/${stemType}.wav`;
 
       await uploadFile(r2StemKey, filePath, 'audio/wav');
       const fileInfo = await stat(filePath);

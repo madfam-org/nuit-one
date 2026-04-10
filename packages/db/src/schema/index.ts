@@ -1,5 +1,6 @@
 export { trackAnalysis } from './analysis.js';
 export { calibrationProfiles } from './calibration.js';
+export { contentSources } from './contentSources.js';
 export { performances } from './performances.js';
 export { projects } from './projects.js';
 export { stems } from './stems.js';

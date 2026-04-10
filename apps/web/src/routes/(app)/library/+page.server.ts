@@ -22,8 +22,13 @@ export const load: PageServerLoad = async ({ locals }) => {
           WHERE stems.track_id = ${schema.tracks.id}
           AND stems.midi_data IS NOT NULL
         )`.as('has_notes'),
+        sourceType: schema.contentSources.sourceType,
+        artist: schema.contentSources.artist,
+        thumbnailUrl: schema.contentSources.thumbnailUrl,
+        durationSeconds: schema.contentSources.durationSeconds,
       })
       .from(schema.tracks)
+      .leftJoin(schema.contentSources, eq(schema.tracks.contentSourceId, schema.contentSources.id))
       .where(eq(schema.tracks.userId, userId))
       .orderBy(desc(schema.tracks.createdAt)),
     db
@@ -50,6 +55,10 @@ export const load: PageServerLoad = async ({ locals }) => {
       instrument: t.instrument,
       createdAt: t.createdAt?.toISOString() ?? '',
       hasNotes: !!t.hasNotes,
+      sourceType: t.sourceType ?? null,
+      artist: t.artist ?? null,
+      thumbnailUrl: t.thumbnailUrl ?? null,
+      durationSeconds: t.durationSeconds ?? null,
     })),
     projects: projects.map((p) => ({
       id: p.id,

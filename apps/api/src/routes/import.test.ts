@@ -36,24 +36,24 @@ describe('POST /youtube', () => {
     expect(body.error).toBe('Missing url');
   });
 
-  it('returns 400 for invalid YouTube URL', async () => {
+  it('returns 400 for invalid URL format', async () => {
     const app = createTestApp();
     const res = await app.request('/youtube', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: 'https://example.com/not-youtube' }),
+      body: JSON.stringify({ url: 'not-a-valid-url' }),
     });
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe('Invalid YouTube URL');
+    expect(body.error).toBe('Invalid URL');
   });
 
-  it('returns a jobId for a valid YouTube URL', async () => {
+  it('returns a jobId for a valid URL', async () => {
     const app = createTestApp();
     const res = await app.request('/youtube', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }),
+      body: JSON.stringify({ url: 'https://soundcloud.com/artist/track' }),
     });
     // The route creates a job and returns immediately with 200.
     // The background download will fail (no yt-dlp in test), but that

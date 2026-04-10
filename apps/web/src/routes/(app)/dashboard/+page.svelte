@@ -47,10 +47,10 @@ import { goto, invalidateAll } from '$app/navigation';
   let processingTrackId = $state<string | null>(null);
   let processingJobId = $state<string | null>(null);
 
-  // YouTube import state
-  let youtubeUrl = $state('');
-  let youtubeImporting = $state(false);
-  let youtubeError = $state('');
+  // URL import state
+  let importUrl = $state('');
+  let importing = $state(false);
+  let importError = $state('');
 
   async function handleUploadComplete(trackId: string) {
     await invalidateAll();
@@ -80,31 +80,31 @@ import { goto, invalidateAll } from '$app/navigation';
     invalidateAll();
   }
 
-  async function handleYouTubeImport() {
-    if (!youtubeUrl.trim()) return;
-    youtubeError = '';
-    youtubeImporting = true;
+  async function handleUrlImport() {
+    if (!importUrl.trim()) return;
+    importError = '';
+    importing = true;
 
     try {
-      const res = await fetch('/api/import/youtube', {
+      const res = await fetch('/api/import/url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: youtubeUrl }),
+        body: JSON.stringify({ url: importUrl }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({ error: 'Import failed' }));
-        youtubeError = data.error ?? 'Import failed';
-        youtubeImporting = false;
+        importError = data.error ?? 'Import failed';
+        importing = false;
         return;
       }
       const result = await res.json();
       processingJobId = result.jobId;
-      processingTrackId = 'youtube-import';
-      youtubeUrl = '';
-      youtubeImporting = false;
+      processingTrackId = 'url-import';
+      importUrl = '';
+      importing = false;
     } catch {
-      youtubeError = 'Failed to start import';
-      youtubeImporting = false;
+      importError = 'Failed to start import';
+      importing = false;
     }
   }
 </script>
@@ -142,25 +142,25 @@ import { goto, invalidateAll } from '$app/navigation';
     </section>
 
     <section class="dashboard-section">
-      <h2 class="mb-3 text-lg font-semibold">Import from YouTube</h2>
+      <h2 class="mb-3 text-lg font-semibold">Import from URL</h2>
       <div class="flex gap-3">
         <input
           type="text"
-          bind:value={youtubeUrl}
-          placeholder="https://www.youtube.com/watch?v=..."
+          bind:value={importUrl}
+          placeholder="Paste any music URL (YouTube, SoundCloud, Bandcamp, ...)"
           class="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-white/30 focus:border-neon-cyan focus:outline-none"
-          disabled={youtubeImporting}
+          disabled={importing}
         />
         <button
-          onclick={handleYouTubeImport}
-          disabled={youtubeImporting || !youtubeUrl.trim()}
+          onclick={handleUrlImport}
+          disabled={importing || !importUrl.trim()}
           class="rounded-lg bg-neon-cyan/20 px-4 py-2 text-sm font-medium text-neon-cyan transition hover:bg-neon-cyan/30 disabled:opacity-40"
         >
-          {youtubeImporting ? 'Importing...' : 'Import'}
+          {importing ? 'Importing...' : 'Import'}
         </button>
       </div>
-      {#if youtubeError}
-        <p class="mt-2 text-sm text-red-400">{youtubeError}</p>
+      {#if importError}
+        <p class="mt-2 text-sm text-red-400">{importError}</p>
       {/if}
     </section>
 

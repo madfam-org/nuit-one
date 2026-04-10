@@ -27,9 +27,39 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   });
 
   if (!track) throw error(404, 'Track not found');
+
+  // If track has contentSourceId, check content source status
+  if (track.contentSourceId) {
+    const contentSource = await db.query.contentSources.findFirst({
+      where: eq(schema.contentSources.id, track.contentSourceId),
+    });
+
+    if (contentSource?.status === 'expired') {
+      return {
+        track: { id: track.id, title: track.title },
+        expired: true,
+        reimportUrl: contentSource.originalUrl,
+        stemUrls: {} as Record<string, string>,
+        stemsWithNotes: {} as Record<string, { stemId: string; notes: NoteEvent[] }>,
+        availableInstruments: [] as string[],
+        hasNotes: false,
+        userId: locals.userId,
+        workspaceId: locals.workspaceId ?? null,
+        soketiAppKey: env.SOKETI_APP_KEY ?? 'nuit-one-key',
+        soketiHost: env.SOKETI_HOST ?? 'localhost',
+        soketiPort: Number(env.SOKETI_PORT ?? '6001'),
+      };
+    }
+  }
+
   if (track.status !== 'ready') throw error(400, 'Track is not ready');
 
-  const trackStems = await db.select().from(schema.stems).where(eq(schema.stems.trackId, track.id));
+  // If track has contentSourceId, load stems from content source (shared library)
+  const stemFilter = track.contentSourceId
+    ? eq(schema.stems.contentSourceId, track.contentSourceId)
+    : eq(schema.stems.trackId, track.id);
+
+  const trackStems = await db.select().from(schema.stems).where(stemFilter);
 
   const stemUrls: Record<string, string> = {};
   const stemsWithNotes: Record<string, { stemId: string; notes: NoteEvent[] }> = {};
@@ -45,6 +75,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   return {
     track: { id: track.id, title: track.title },
+    expired: false,
+    reimportUrl: null as string | null,
     stemUrls,
     stemsWithNotes,
     availableInstruments: Object.keys(stemsWithNotes),

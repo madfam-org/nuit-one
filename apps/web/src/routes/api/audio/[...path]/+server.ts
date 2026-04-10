@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { schema } from '@nuit-one/db';
 import { error } from '@sveltejs/kit';
+import { and, eq, lt } from 'drizzle-orm';
+import { db } from '$lib/server/db.js';
 import { getDownloadUrl, isLocalStorage, readLocalFile } from '$lib/server/storage.js';
 import type { RequestHandler } from './$types';
 
@@ -10,6 +13,7 @@ import type { RequestHandler } from './$types';
  * In R2 mode: fetches audio using a signed URL on the server side,
  * then streams it to the client with same-origin CORP headers.
  * Demo files are served directly from the static directory.
+ * Supports tracks/, content/, and demo/ path prefixes.
  */
 export const GET: RequestHandler = async ({ params, locals }) => {
   if (!locals.accessToken) throw error(401, 'Unauthorized');
@@ -44,9 +48,28 @@ export const GET: RequestHandler = async ({ params, locals }) => {
     }
   }
 
-  // Only allow audio file paths — block traversal
-  if (!r2Key.startsWith('tracks/')) {
+  // Only allow audio file paths under tracks/ or content/
+  if (!r2Key.startsWith('tracks/') && !r2Key.startsWith('content/')) {
     throw error(403, 'Forbidden path');
+  }
+
+  // Track access for content sources (debounced: only update if last access > 1 hour ago)
+  if (r2Key.startsWith('content/')) {
+    const parts = r2Key.split('/');
+    const contentSourceId = parts[1];
+    if (contentSourceId) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      // Fire-and-forget: don't block the audio response for DB writes
+      db.update(schema.contentSources)
+        .set({ lastAccessedAt: new Date() })
+        .where(
+          and(
+            eq(schema.contentSources.id, contentSourceId),
+            lt(schema.contentSources.lastAccessedAt, oneHourAgo),
+          ),
+        )
+        .catch(() => {});
+    }
   }
 
   if (isLocalStorage()) {

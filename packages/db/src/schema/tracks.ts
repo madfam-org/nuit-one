@@ -29,6 +29,7 @@ export const tracks = pgTable('tracks', {
   fileSizeBytes: bigint('file_size_bytes', { mode: 'number' }),
   contentType: text('content_type'),
   assignedTo: uuid('assigned_to'),
+  contentSourceId: uuid('content_source_id'),
   sortOrder: integer('sort_order').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });

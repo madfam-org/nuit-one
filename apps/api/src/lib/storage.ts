@@ -1,4 +1,4 @@
-import { copyFile, mkdir } from 'node:fs/promises';
+import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
 const STORAGE_MODE = process.env.STORAGE_MODE ?? 'r2';
@@ -35,5 +35,16 @@ export async function getFileDownloadUrl(key: string): Promise<string> {
   } else {
     const { getDownloadUrl } = await import('./r2.js');
     return getDownloadUrl(key);
+  }
+}
+
+export async function deleteObjects(prefix: string): Promise<void> {
+  if (STORAGE_MODE === 'local') {
+    const dir = localPath(prefix);
+    // Remove the entire directory tree under the prefix
+    await rm(dir, { recursive: true, force: true });
+  } else {
+    const { deleteR2Objects } = await import('./r2.js');
+    await deleteR2Objects(prefix);
   }
 }
