@@ -47,3 +47,6 @@ pnpm-debug.log*
 # Playwright
 apps/web/playwright-report/
 apps/web/test-results/
+
+# Playwright MCP browser session
+.playwright-mcp/
