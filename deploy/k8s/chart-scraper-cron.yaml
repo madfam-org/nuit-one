@@ -1,0 +1,41 @@
+# Chart Scraper CronJob — Refreshes Spotify + YouTube Music charts daily
+# Hits the API's admin endpoint to trigger catalog refresh
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: chart-scraper
+  namespace: nuit-one
+  labels:
+    app: chart-scraper
+    platform: madfam
+spec:
+  schedule: "0 6 * * *"  # Daily at 6:00 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 300  # 5 minute timeout
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: chart-scraper
+              image: curlimages/curl:8.5.0
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Refreshing charts at $(date)"
+                  curl -sf -X POST \
+                    -H "Authorization: Bearer ${API_TOKEN}" \
+                    "http://nuit-one-api/api/admin/refresh-charts" \
+                    --max-time 120
+                  echo "Chart refresh complete"
+              env:
+                - name: API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: nuit-one-secrets
+                      key: chart-scraper-token
