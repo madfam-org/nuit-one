@@ -17,6 +17,10 @@ export type {
   CalibrationStep,
 } from './calibration.js';
 export type {
+  CatalogSection,
+  CatalogTrack,
+} from './catalog.js';
+export type {
   HitJudgment,
   NoteEvent,
   PerformanceResult,

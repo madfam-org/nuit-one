@@ -30,6 +30,8 @@ export type {
   CalibrationProfile,
   CalibrationState,
   CalibrationStep,
+  CatalogSection,
+  CatalogTrack,
   ChordEvent,
   DifficultyTier,
   HitJudgment,

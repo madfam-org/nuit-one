@@ -58,6 +58,9 @@
 {#snippet dashIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.dashboard}/></svg>
 {/snippet}
+{#snippet discoverIcon()}
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.discover}/></svg>
+{/snippet}
 {#snippet libIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.library}/></svg>
 {/snippet}
@@ -74,6 +77,9 @@
 <!-- Mobile tab icon snippets -->
 {#snippet mDashIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.dashboard}/></svg>
+{/snippet}
+{#snippet mDiscoverIcon()}
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.discover}/></svg>
 {/snippet}
 {#snippet mLibIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.library}/></svg>
@@ -105,6 +111,13 @@
           icon={dashIcon}
           label="Dashboard"
           active={$page.url.pathname === '/dashboard'}
+          collapsed={sidebar.collapsed}
+        />
+        <SidebarItem
+          href="/discover"
+          icon={discoverIcon}
+          label="Discover"
+          active={$page.url.pathname.startsWith('/discover')}
           collapsed={sidebar.collapsed}
         />
         <SidebarItem
@@ -158,10 +171,10 @@
     <BottomTabs
       items={[
         { href: '/dashboard', label: 'Home', icon: mDashIcon },
+        { href: '/discover', label: 'Discover', icon: mDiscoverIcon },
         { href: '/library', label: 'Library', icon: mLibIcon },
         { href: '/setlist', label: 'Setlist', icon: mSetlistIcon },
         { href: '/projects', label: 'Studio', icon: mStudioIcon },
-        { href: '/settings', label: 'Settings', icon: mSettingsIcon },
       ]}
       activeHref={$page.url.pathname}
     />
