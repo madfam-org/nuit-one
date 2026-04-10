@@ -34,6 +34,7 @@ export type {
   DifficultyTier,
   HitJudgment,
   HitResult,
+  LeaderboardEntry,
   MidiEvent,
   MidiNote,
   MidiTrack,

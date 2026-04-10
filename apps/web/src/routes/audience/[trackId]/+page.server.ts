@@ -1,8 +1,7 @@
 import { schema } from '@nuit-one/db';
 import type { NoteEvent } from '@nuit-one/shared';
 import { error } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
@@ -23,36 +22,28 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   if (!locals.userId) throw error(401, 'Unauthorized');
 
   const track = await db.query.tracks.findFirst({
-    where: and(eq(schema.tracks.id, params.trackId), eq(schema.tracks.userId, locals.userId)),
+    where: eq(schema.tracks.id, params.trackId),
   });
 
   if (!track) throw error(404, 'Track not found');
-  if (track.status !== 'ready') throw error(400, 'Track is not ready');
 
-  const trackStems = await db.select().from(schema.stems).where(eq(schema.stems.trackId, track.id));
+  const trackStems = await db
+    .select()
+    .from(schema.stems)
+    .where(eq(schema.stems.trackId, track.id));
 
-  const stemUrls: Record<string, string> = {};
-  const stemsWithNotes: Record<string, { stemId: string; notes: NoteEvent[] }> = {};
+  const stemsWithNotes: Record<string, { notes: NoteEvent[] }> = {};
 
   for (const stem of trackStems) {
     const name = stem.stemType ?? 'unknown';
-    stemUrls[name] = `/api/audio/${stem.r2Key}`;
     const notes = validateNotes(stem.midiData);
     if (notes.length > 0) {
-      stemsWithNotes[name] = { stemId: stem.id, notes };
+      stemsWithNotes[name] = { notes };
     }
   }
 
   return {
     track: { id: track.id, title: track.title },
-    stemUrls,
     stemsWithNotes,
-    availableInstruments: Object.keys(stemsWithNotes),
-    hasNotes: Object.keys(stemsWithNotes).length > 0,
-    userId: locals.userId,
-    workspaceId: locals.workspaceId ?? null,
-    soketiAppKey: env.SOKETI_APP_KEY ?? 'nuit-one-key',
-    soketiHost: env.SOKETI_HOST ?? 'localhost',
-    soketiPort: Number(env.SOKETI_PORT ?? '6001'),
   };
 };

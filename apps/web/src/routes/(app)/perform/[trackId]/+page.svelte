@@ -2,13 +2,18 @@
   
   import type { HitJudgment, NoteEvent, PerformanceResult, PlayableInstrument } from '@nuit-one/shared';
   import {INSTRUMENT_COLORS,
-    INSTRUMENT_FREQUENCY_RANGES, 
+    INSTRUMENT_FREQUENCY_RANGES,
     INSTRUMENT_LABELS, INSTRUMENT_MIDI_RANGES,
   } from '@nuit-one/shared';
   import { Button, GlassCard } from '@nuit-one/ui';
+  import Pusher from 'pusher-js';
   import { onDestroy, onMount } from 'svelte';
 import { goto } from '$app/navigation';
+  import { createAudienceSender } from '$lib/audience-channel.js';
   import { type AudioInputDevice, getAudioInputDevices } from '$lib/audio/device-manager.js';
+  import type { InputSource } from '$lib/audio/input-source.js';
+  import { type MidiInputDevice, getMidiInputDevices, isMidiSupported } from '$lib/audio/midi-device-manager.js';
+  import { MidiInput } from '$lib/audio/midi-input.js';
   import { PitchDetector } from '$lib/audio/pitch-detector.js';
   import { ScoringEngine } from '$lib/audio/scoring-engine.js';
   import NoteHighway from '$lib/components/NoteHighway.svelte';
@@ -53,7 +58,9 @@ import { goto } from '$app/navigation';
   interface PlayerConfig {
     instrument: PlayableInstrument | null;
     deviceId: string | null;
-    pitchDetector: PitchDetector | null;
+    inputType: 'microphone' | 'midi';
+    midiDeviceId: string | null;
+    inputSource: InputSource | null;
     scoringEngine: ScoringEngine | null;
     score: number;
     combo: number;
@@ -68,7 +75,9 @@ import { goto } from '$app/navigation';
     return {
       instrument: null,
       deviceId: null,
-      pitchDetector: null,
+      inputType: 'microphone',
+      midiDeviceId: null,
+      inputSource: null,
       scoringEngine: null,
       score: 0,
       combo: 0,
@@ -87,10 +96,13 @@ import { goto } from '$app/navigation';
   let gameState = $state<GameState>('idle');
   let countdown = $state(3);
   let scoreTickId: number | null = null;
+  let audienceFrameCount = 0;
 
   let playerCount = $state(1);
   let players = $state<PlayerConfig[]>([createDefaultPlayerConfig()]);
   let audioDevices = $state<AudioInputDevice[]>([]);
+  let midiDevices = $state<MidiInputDevice[]>([]);
+  let midiSupported = $state(false);
 
   const activePlayers = $derived(players.filter(p => p.instrument !== null));
   const takenInstruments = $derived(
@@ -99,6 +111,18 @@ import { goto } from '$app/navigation';
   const canStart = $derived(activePlayers.length > 0);
 
   let isFullscreen = $state(false);
+
+  // --- Live score broadcasting via Soketi ---
+  let performPusher: Pusher | null = null;
+  let performChannel: ReturnType<Pusher['subscribe']> | null = null;
+  let liveScoreInterval: ReturnType<typeof setInterval> | null = null;
+
+  // --- Audience broadcast channel ---
+  let audienceSender: ReturnType<typeof createAudienceSender> | null = null;
+
+  function openAudienceView() {
+    window.open(`/audience/${data.track.id}`, 'nuit-audience', 'width=1920,height=1080');
+  }
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
@@ -140,10 +164,22 @@ import { goto } from '$app/navigation';
 
   // Load audio devices on mount + restore setlist player configs
   onMount(async () => {
+    audienceSender = createAudienceSender(data.track.id);
+
     try {
       audioDevices = await getAudioInputDevices();
     } catch {
       // Mic permission denied or unavailable — will handle per-player
+    }
+
+    // Check MIDI support and load devices
+    midiSupported = isMidiSupported();
+    if (midiSupported) {
+      try {
+        midiDevices = await getMidiInputDevices();
+      } catch {
+        // MIDI access denied — leave midiDevices empty
+      }
     }
 
     // If in setlist mode, restore instrument/device selections from previous track
@@ -154,6 +190,8 @@ import { goto } from '$app/navigation';
           ...createDefaultPlayerConfig(),
           instrument: c.instrument,
           deviceId: c.deviceId,
+          inputType: c.inputType ?? 'microphone',
+          midiDeviceId: c.midiDeviceId ?? null,
         }));
         players = restored;
         playerCount = restored.length;
@@ -172,14 +210,16 @@ import { goto } from '$app/navigation';
       player.toggleMute(p.instrument!);
     }
 
-    // Init scoring + pitch detectors per player
+    // Init scoring + input sources per player
     for (const p of activePlayers) {
       const notes = data.stemsWithNotes[p.instrument!]?.notes ?? [];
       p.scoringEngine = new ScoringEngine(notes);
 
-      if (player.player?.audioContext) {
+      if (p.inputType === 'midi') {
+        p.inputSource = new MidiInput();
+      } else if (player.player?.audioContext) {
         const range = INSTRUMENT_FREQUENCY_RANGES[p.instrument!];
-        p.pitchDetector = new PitchDetector(player.player.audioContext, {
+        p.inputSource = new PitchDetector(player.player.audioContext, {
           minFrequency: range.min,
           maxFrequency: range.max,
           deviceId: p.deviceId ?? undefined,
@@ -187,12 +227,31 @@ import { goto } from '$app/navigation';
       }
     }
 
+    // Broadcast track info and note data to audience view
+    audienceSender?.send({ type: 'track', title: data.track.title });
+    const instrumentNotes: Record<string, { notes: NoteEvent[]; minPitch: number; maxPitch: number; color: string }> = {};
+    for (const p of activePlayers) {
+      const inst = p.instrument!;
+      const stemData = data.stemsWithNotes[inst];
+      if (stemData) {
+        instrumentNotes[inst] = {
+          notes: stemData.notes,
+          minPitch: INSTRUMENT_MIDI_RANGES[inst].min,
+          maxPitch: INSTRUMENT_MIDI_RANGES[inst].max,
+          color: INSTRUMENT_COLORS[inst],
+        };
+      }
+    }
+    audienceSender?.send({ type: 'notes', instruments: instrumentNotes });
+
     // Countdown
     gameState = 'countdown';
     countdown = 3;
+    audienceSender?.send({ type: 'state', gameState: 'countdown', currentTime: 0, duration: 0, countdown: 3 });
 
     const countdownInterval = setInterval(() => {
       countdown--;
+      audienceSender?.send({ type: 'state', gameState: 'countdown', currentTime: 0, duration: 0, countdown });
       if (countdown <= 0) {
         clearInterval(countdownInterval);
         beginPlayback();
@@ -203,13 +262,52 @@ import { goto } from '$app/navigation';
   async function beginPlayback() {
     gameState = 'playing';
     player.play();
+    audienceFrameCount = 0;
 
-    // Start pitch detection for each player
+    // Start live score broadcasting via Soketi
+    if (data.workspaceId && data.soketiAppKey) {
+      try {
+        performPusher = new Pusher(data.soketiAppKey, {
+          wsHost: data.soketiHost ?? 'localhost',
+          wsPort: data.soketiPort ?? 6001,
+          wssPort: data.soketiPort ?? 6001,
+          forceTLS: false,
+          enabledTransports: ['ws', 'wss'],
+          authEndpoint: '/api/pusher/auth',
+          cluster: 'mt1',
+        });
+        performChannel = performPusher.subscribe(`private-workspace-${data.workspaceId}`);
+      } catch {
+        // Non-fatal: live score broadcasting is optional
+      }
+
+      liveScoreInterval = setInterval(() => {
+        if (gameState !== 'playing' || !performChannel) return;
+        try {
+          performChannel.trigger('client-live-score', {
+            userId: data.userId,
+            trackId: data.track.id,
+            score: activePlayers[0]?.score ?? 0,
+            accuracy: activePlayers[0]?.accuracy ?? 0,
+            combo: activePlayers[0]?.combo ?? 0,
+            timestamp: Date.now(),
+          });
+        } catch {
+          // Ignore broadcast failures
+        }
+      }, 3000);
+    }
+
+    // Start input sources for each player
     for (const p of activePlayers) {
       try {
-        await p.pitchDetector?.start();
+        if (p.inputSource instanceof MidiInput) {
+          await p.inputSource.start(p.midiDeviceId ?? undefined);
+        } else if (p.inputSource) {
+          await p.inputSource.start();
+        }
       } catch (err) {
-        console.warn('Mic access denied or unavailable:', err);
+        console.warn('Input source unavailable:', err);
         p.micError = true;
       }
     }
@@ -226,8 +324,8 @@ import { goto } from '$app/navigation';
     for (const p of activePlayers) {
       if (!p.scoringEngine) continue;
 
-      if (p.pitchDetector?.running && p.pitchDetector.currentMidiNote > 0) {
-        const judgment = p.scoringEngine.evaluate(time, p.pitchDetector.currentMidiNote, p.pitchDetector.currentAmplitude);
+      if (p.inputSource?.running && p.inputSource.currentMidiNote > 0) {
+        const judgment = p.scoringEngine.evaluate(time, p.inputSource.currentMidiNote, p.inputSource.currentAmplitude);
         if (judgment) {
           p.lastJudgment = judgment.judgment;
           p.recentJudgments = [...p.recentJudgments.slice(-20), {
@@ -243,6 +341,29 @@ import { goto } from '$app/navigation';
       const res = p.scoringEngine.getResults();
       p.accuracy = res.accuracy;
     }
+
+    // Broadcast to audience every 3rd frame
+    if (audienceFrameCount % 3 === 0) {
+      audienceSender?.send({
+        type: 'state',
+        gameState: 'playing',
+        currentTime: time,
+        duration: player.duration,
+      });
+      audienceSender?.send({
+        type: 'scores',
+        players: activePlayers.map((p, i) => ({
+          label: `P${i + 1}`,
+          instrument: INSTRUMENT_LABELS[p.instrument!],
+          color: INSTRUMENT_COLORS[p.instrument!],
+          score: p.score,
+          combo: p.combo,
+          accuracy: p.accuracy,
+          lastJudgment: p.lastJudgment,
+        })),
+      });
+    }
+    audienceFrameCount++;
 
     // Check if song finished
     if (time >= player.duration - 0.5) {
@@ -260,9 +381,17 @@ import { goto } from '$app/navigation';
 
     if (scoreTickId) cancelAnimationFrame(scoreTickId);
 
+    // Clean up live score broadcasting
+    if (liveScoreInterval) clearInterval(liveScoreInterval);
+    liveScoreInterval = null;
+    performChannel?.unsubscribe();
+    performPusher?.disconnect();
+    performChannel = null;
+    performPusher = null;
+
     // Finalize each player
     for (const p of activePlayers) {
-      p.pitchDetector?.stop();
+      p.inputSource?.stop();
 
       if (p.scoringEngine) {
         p.results = p.scoringEngine.getResults();
@@ -281,6 +410,19 @@ import { goto } from '$app/navigation';
       }
     }
 
+    // Broadcast results to audience view
+    audienceSender?.send({
+      type: 'results',
+      players: activePlayers
+        .filter((p) => p.results !== null)
+        .map((p, i) => ({
+          label: `P${i + 1}`,
+          instrument: INSTRUMENT_LABELS[p.instrument!],
+          color: INSTRUMENT_COLORS[p.instrument!],
+          results: p.results!,
+        })),
+    });
+
     // Record results for setlist mode
     if (inSetlistMode) {
       const resultsMap: Record<string, PerformanceResult> = {};
@@ -295,7 +437,12 @@ import { goto } from '$app/navigation';
       setlist.setPlayerConfigs(
         players
           .filter((p) => p.instrument !== null)
-          .map((p) => ({ instrument: p.instrument, deviceId: p.deviceId })),
+          .map((p) => ({
+            instrument: p.instrument,
+            deviceId: p.deviceId,
+            inputType: p.inputType,
+            midiDeviceId: p.midiDeviceId,
+          })),
       );
     }
   }
@@ -308,7 +455,7 @@ import { goto } from '$app/navigation';
       p.combo = 0;
       p.lastJudgment = null;
       p.accuracy = 0;
-      p.pitchDetector = null;
+      p.inputSource = null;
       p.scoringEngine = null;
       p.micError = false;
     }
@@ -319,7 +466,7 @@ import { goto } from '$app/navigation';
   function goBack() {
     player.destroy();
     for (const p of activePlayers) {
-      p.pitchDetector?.stop();
+      p.inputSource?.stop();
     }
     goto('/library');
   }
@@ -328,7 +475,7 @@ import { goto } from '$app/navigation';
     // Cleanup current track
     player.destroy();
     for (const p of activePlayers) {
-      p.pitchDetector?.stop();
+      p.inputSource?.stop();
     }
     if (scoreTickId) cancelAnimationFrame(scoreTickId);
     scoreTickId = null;
@@ -344,7 +491,7 @@ import { goto } from '$app/navigation';
     // Cleanup current track
     player.destroy();
     for (const p of activePlayers) {
-      p.pitchDetector?.stop();
+      p.inputSource?.stop();
     }
     if (scoreTickId) cancelAnimationFrame(scoreTickId);
     scoreTickId = null;
@@ -354,10 +501,14 @@ import { goto } from '$app/navigation';
 
   onDestroy(() => {
     if (scoreTickId) cancelAnimationFrame(scoreTickId);
+    if (liveScoreInterval) clearInterval(liveScoreInterval);
+    performChannel?.unsubscribe();
+    performPusher?.disconnect();
     for (const p of players) {
-      p.pitchDetector?.stop();
+      p.inputSource?.stop();
     }
     player.destroy();
+    audienceSender?.close();
   });
 </script>
 
@@ -388,6 +539,12 @@ import { goto } from '$app/navigation';
                   onDeviceChange={(devId) => { players[i]!.deviceId = devId; }}
                   removable={playerCount > 1}
                   onRemove={() => removePlayer(i)}
+                  inputType={p.inputType}
+                  {midiDevices}
+                  selectedMidiDeviceId={p.midiDeviceId}
+                  {midiSupported}
+                  onInputTypeChange={(type) => { players[i]!.inputType = type; }}
+                  onMidiDeviceChange={(devId) => { players[i]!.midiDeviceId = devId; }}
                 />
               {/each}
             </div>
@@ -400,6 +557,9 @@ import { goto } from '$app/navigation';
               <Button variant="primary" size="lg" disabled={!canStart} onclick={startGame}>
                 Start Performance
               </Button>
+              <button class="audience-btn" onclick={openAudienceView}>
+                Open Audience View
+              </button>
               <Button variant="ghost" onclick={goBack}>Back</Button>
             </div>
           {/if}
@@ -418,7 +578,7 @@ import { goto } from '$app/navigation';
         {@const inst = p.instrument!}
         <div class="player-lane" style:border-color={INSTRUMENT_COLORS[inst]}>
           {#if p.micError}
-            <div class="mic-warning">Mic unavailable — scoring disabled</div>
+            <div class="mic-warning">Input unavailable — scoring disabled</div>
           {/if}
           <div class="lane-header">
             <span class="lane-label" style:color={INSTRUMENT_COLORS[inst]}>
@@ -605,6 +765,23 @@ import { goto } from '$app/navigation';
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
+  }
+
+  .audience-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #a0a0b0;
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 150ms ease;
+  }
+
+  .audience-btn:hover {
+    border-color: rgba(0, 245, 255, 0.4);
+    color: #00f5ff;
+    background: rgba(0, 245, 255, 0.05);
   }
 
   .countdown-screen {

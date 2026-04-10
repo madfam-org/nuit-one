@@ -4,3 +4,5 @@ export { performances } from './performances.js';
 export { projects } from './projects.js';
 export { stems } from './stems.js';
 export { tracks } from './tracks.js';
+export { workspaceInvitations } from './workspaceInvitations.js';
+export { workspaceMembers } from './workspaceMembers.js';

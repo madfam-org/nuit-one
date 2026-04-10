@@ -3,6 +3,7 @@
   import type { PlayableInstrument } from '@nuit-one/shared';
 import { INSTRUMENT_COLORS, INSTRUMENT_LABELS } from '@nuit-one/shared';
   import type { AudioInputDevice } from '$lib/audio/device-manager.js';
+  import type { MidiInputDevice } from '$lib/audio/midi-device-manager.js';
 
   interface Props {
     playerIndex: number;
@@ -16,6 +17,12 @@ import { INSTRUMENT_COLORS, INSTRUMENT_LABELS } from '@nuit-one/shared';
     onDeviceChange: (deviceId: string | null) => void;
     removable?: boolean;
     onRemove?: () => void;
+    inputType?: 'microphone' | 'midi';
+    midiDevices?: MidiInputDevice[];
+    selectedMidiDeviceId?: string | null;
+    onInputTypeChange?: (type: 'microphone' | 'midi') => void;
+    onMidiDeviceChange?: (deviceId: string | null) => void;
+    midiSupported?: boolean;
   }
 
   const {
@@ -23,6 +30,12 @@ import { INSTRUMENT_COLORS, INSTRUMENT_LABELS } from '@nuit-one/shared';
     selectedInstrument, selectedDeviceId, noteCount,
     onInstrumentChange, onDeviceChange,
     removable = false, onRemove,
+    inputType = 'microphone',
+    midiDevices = [],
+    selectedMidiDeviceId = null,
+    onInputTypeChange,
+    onMidiDeviceChange,
+    midiSupported = false,
   }: Props = $props();
 
   const selectableInstruments = $derived(
@@ -59,7 +72,42 @@ import { INSTRUMENT_COLORS, INSTRUMENT_LABELS } from '@nuit-one/shared';
       {/each}
     </select>
 
-    {#if audioDevices.length > 1}
+    {#if onInputTypeChange}
+      <div class="input-toggle" role="radiogroup" aria-label="Input type">
+        <button
+          class="toggle-btn"
+          class:active={inputType === 'microphone'}
+          aria-checked={inputType === 'microphone'}
+          role="radio"
+          onclick={() => onInputTypeChange('microphone')}
+        >Mic</button>
+        <button
+          class="toggle-btn"
+          class:active={inputType === 'midi'}
+          aria-checked={inputType === 'midi'}
+          role="radio"
+          disabled={!midiSupported}
+          title={midiSupported ? 'Use MIDI controller' : 'Web MIDI API not supported in this browser'}
+          onclick={() => onInputTypeChange('midi')}
+        >MIDI</button>
+      </div>
+    {/if}
+
+    {#if inputType === 'midi' && onMidiDeviceChange}
+      <select
+        class="slot-select device-select"
+        value={selectedMidiDeviceId ?? ''}
+        onchange={(e) => {
+          const val = (e.target as HTMLSelectElement).value;
+          onMidiDeviceChange(val || null);
+        }}
+      >
+        <option value="">First available</option>
+        {#each midiDevices as dev}
+          <option value={dev.id}>{dev.name}{dev.manufacturer ? ` (${dev.manufacturer})` : ''}</option>
+        {/each}
+      </select>
+    {:else if inputType === 'microphone' && audioDevices.length > 1}
       <select
         class="slot-select device-select"
         value={selectedDeviceId ?? ''}
@@ -147,6 +195,46 @@ import { INSTRUMENT_COLORS, INSTRUMENT_LABELS } from '@nuit-one/shared';
 
   .device-select {
     flex: 1.5;
+  }
+
+  .input-toggle {
+    display: flex;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .toggle-btn {
+    background: rgba(0, 0, 0, 0.3);
+    border: none;
+    color: #808090;
+    padding: 0.375rem 0.625rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .toggle-btn:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .toggle-btn.active {
+    background: rgba(0, 245, 255, 0.15);
+    color: #00f5ff;
+  }
+
+  .toggle-btn:hover:not(:disabled):not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    color: #c0c0d0;
+  }
+
+  .toggle-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
   }
 
   .note-info {

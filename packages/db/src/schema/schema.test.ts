@@ -1,7 +1,16 @@
 import { getTableColumns } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { createDb, schema } from '../index.js';
-import { calibrationProfiles, performances, projects, stems, trackAnalysis, tracks } from './index.js';
+import {
+  calibrationProfiles,
+  performances,
+  projects,
+  stems,
+  trackAnalysis,
+  tracks,
+  workspaceInvitations,
+  workspaceMembers,
+} from './index.js';
 
 /**
  * Helper: extract the inline foreign keys Drizzle stores on PgTable instances.
@@ -18,13 +27,15 @@ function getInlineForeignKeys(table: object): unknown[] {
 // ---------------------------------------------------------------------------
 
 describe('schema barrel exports', () => {
-  it('exports all six tables', () => {
+  it('exports all eight tables', () => {
     expect(projects).toBeDefined();
     expect(tracks).toBeDefined();
     expect(stems).toBeDefined();
     expect(performances).toBeDefined();
     expect(calibrationProfiles).toBeDefined();
     expect(trackAnalysis).toBeDefined();
+    expect(workspaceMembers).toBeDefined();
+    expect(workspaceInvitations).toBeDefined();
   });
 
   it('exports createDb from the package entry point', () => {
@@ -38,6 +49,8 @@ describe('schema barrel exports', () => {
     expect(schema.stems).toBe(stems);
     expect(schema.performances).toBe(performances);
     expect(schema.calibrationProfiles).toBe(calibrationProfiles);
+    expect(schema.workspaceMembers).toBe(workspaceMembers);
+    expect(schema.workspaceInvitations).toBe(workspaceInvitations);
   });
 });
 
@@ -198,6 +211,78 @@ describe('trackAnalysis table columns', () => {
   });
 });
 
+describe('workspaceMembers table columns', () => {
+  const cols = getTableColumns(workspaceMembers);
+
+  it('has the expected columns', () => {
+    expect(Object.keys(cols).sort()).toEqual(
+      ['id', 'workspaceId', 'userId', 'role', 'displayName', 'avatarUrl', 'joinedAt'].sort(),
+    );
+  });
+
+  it('has role defaulting to member', () => {
+    expect(cols.role.hasDefault).toBe(true);
+  });
+
+  it('has role as not null', () => {
+    expect(cols.role.notNull).toBe(true);
+  });
+
+  it('has displayName as not null', () => {
+    expect(cols.displayName.notNull).toBe(true);
+  });
+
+  it('has workspaceId as not null', () => {
+    expect(cols.workspaceId.notNull).toBe(true);
+  });
+
+  it('has userId as not null', () => {
+    expect(cols.userId.notNull).toBe(true);
+  });
+
+  it('has avatarUrl as nullable', () => {
+    expect(cols.avatarUrl.notNull).toBe(false);
+  });
+});
+
+describe('workspaceInvitations table columns', () => {
+  const cols = getTableColumns(workspaceInvitations);
+
+  it('has the expected columns', () => {
+    expect(Object.keys(cols).sort()).toEqual(
+      ['id', 'workspaceId', 'email', 'role', 'invitedBy', 'token', 'expiresAt', 'acceptedAt', 'createdAt'].sort(),
+    );
+  });
+
+  it('has role defaulting to member', () => {
+    expect(cols.role.hasDefault).toBe(true);
+  });
+
+  it('has role as not null', () => {
+    expect(cols.role.notNull).toBe(true);
+  });
+
+  it('has email as not null', () => {
+    expect(cols.email.notNull).toBe(true);
+  });
+
+  it('has token as not null', () => {
+    expect(cols.token.notNull).toBe(true);
+  });
+
+  it('has expiresAt as not null', () => {
+    expect(cols.expiresAt.notNull).toBe(true);
+  });
+
+  it('has acceptedAt as nullable', () => {
+    expect(cols.acceptedAt.notNull).toBe(false);
+  });
+
+  it('has invitedBy as not null', () => {
+    expect(cols.invitedBy.notNull).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Foreign key relationships
 // ---------------------------------------------------------------------------
@@ -253,5 +338,15 @@ describe('foreign key relationships', () => {
 
     const fks = getInlineForeignKeys(trackAnalysis);
     expect(fks).toHaveLength(1);
+  });
+
+  it('workspaceMembers has no inline foreign keys (references Janua UUIDs)', () => {
+    const fks = getInlineForeignKeys(workspaceMembers);
+    expect(fks).toHaveLength(0);
+  });
+
+  it('workspaceInvitations has no inline foreign keys (references Janua UUIDs)', () => {
+    const fks = getInlineForeignKeys(workspaceInvitations);
+    expect(fks).toHaveLength(0);
   });
 });

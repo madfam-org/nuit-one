@@ -1,7 +1,7 @@
 <script lang="ts">
-  
+  import { onMount } from 'svelte';
   import { Button, GlassCard } from '@nuit-one/ui';
-import { goto } from '$app/navigation';
+  import { goto } from '$app/navigation';
   import { getSetlistStore } from '$lib/stores/setlist.svelte.js';
   import type { PageData } from './$types';
 
@@ -12,6 +12,44 @@ import { goto } from '$app/navigation';
   // Track which available track is already in the setlist
   const setlistTrackIds = $derived(new Set(setlist.tracks.map((t) => t.trackId)));
   const canStart = $derived(setlist.tracks.length > 0);
+
+  // Offline prefetch state
+  let prefetching = $state(false);
+  let prefetchProgress = $state(0);
+  let prefetchTotal = $state(0);
+  let prefetchDone = $state(false);
+  let hasServiceWorker = $state(false);
+
+  onMount(() => {
+    hasServiceWorker = !!navigator.serviceWorker?.controller;
+  });
+
+  async function downloadForOffline() {
+    if (prefetching || setlist.tracks.length === 0) return;
+    prefetching = true;
+    prefetchDone = false;
+    prefetchProgress = 0;
+    prefetchTotal = 0;
+
+    async function stemUrlsFetcher(trackId: string): Promise<Record<string, string>> {
+      try {
+        const res = await fetch(`/api/tracks/${trackId}/stems`);
+        if (!res.ok) return {};
+        const data = await res.json();
+        return data.urls ?? {};
+      } catch {
+        return {};
+      }
+    }
+
+    await setlist.prefetchStems(stemUrlsFetcher, (completed, total) => {
+      prefetchProgress = completed;
+      prefetchTotal = total;
+    });
+
+    prefetching = false;
+    prefetchDone = true;
+  }
 
   function addTrack(id: string, title: string) {
     if (setlistTrackIds.has(id)) return;
@@ -177,6 +215,41 @@ import { goto } from '$app/navigation';
     <Button variant="primary" size="lg" disabled={!canStart} onclick={startSetlist}>
       Start Setlist
     </Button>
+    {#if hasServiceWorker && setlist.tracks.length > 0}
+      <button
+        class="offline-btn"
+        class:done={prefetchDone}
+        disabled={prefetching}
+        onclick={downloadForOffline}
+        aria-label={prefetchDone ? 'Downloaded for offline' : 'Download for offline'}
+      >
+        {#if prefetchDone}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          Offline Ready
+        {:else if prefetching}
+          <div class="prefetch-progress-wrap">
+            <span>Downloading... {prefetchProgress}/{prefetchTotal}</span>
+            <div class="prefetch-bar-bg">
+              <div
+                class="prefetch-bar-fill"
+                style:width="{prefetchTotal > 0 ? (prefetchProgress / prefetchTotal) * 100 : 0}%"
+              ></div>
+            </div>
+          </div>
+        {:else}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download for Offline
+        {/if}
+      </button>
+    {/if}
     {#if setlist.tracks.length > 0}
       <Button variant="ghost" onclick={() => setlist.clear()}>
         Clear All
@@ -411,5 +484,63 @@ import { goto } from '$app/navigation';
     margin-top: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    flex-wrap: wrap;
+  }
+
+  .offline-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(0, 245, 255, 0.25);
+    border-radius: 8px;
+    background: rgba(0, 245, 255, 0.06);
+    color: #00f5ff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms ease;
+  }
+
+  .offline-btn:hover:not(:disabled) {
+    background: rgba(0, 245, 255, 0.12);
+    border-color: rgba(0, 245, 255, 0.4);
+  }
+
+  .offline-btn:disabled {
+    cursor: default;
+    opacity: 0.8;
+  }
+
+  .offline-btn.done {
+    border-color: rgba(0, 255, 136, 0.3);
+    background: rgba(0, 255, 136, 0.08);
+    color: #00ff88;
+  }
+
+  .prefetch-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 120px;
+  }
+
+  .prefetch-progress-wrap span {
+    font-size: 0.75rem;
+  }
+
+  .prefetch-bar-bg {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+
+  .prefetch-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: #00f5ff;
+    transition: width 200ms ease;
   }
 </style>

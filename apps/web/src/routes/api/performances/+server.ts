@@ -1,5 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { getPusher } from '$lib/server/pusher.js';
 import type { RequestHandler } from './$types';
 
 const API_URL = env.API_URL ?? 'http://localhost:3001';
@@ -24,7 +25,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     throw error(res.status, data.error ?? 'Failed to save performance');
   }
 
-  return json(await res.json());
+  const result = await res.json();
+
+  // Broadcast performance completion via Soketi (non-fatal)
+  try {
+    const pusher = getPusher();
+    if (locals.workspaceId) {
+      await pusher.trigger(`private-workspace-${locals.workspaceId}`, 'performance:completed', {
+        userId: locals.userId,
+        trackId: body.trackId,
+        totalScore: body.totalScore,
+        accuracy: body.accuracy,
+      });
+    }
+  } catch {
+    // Non-fatal: don't fail the request if Soketi is unavailable
+  }
+
+  return json(result);
 };
 
 export const GET: RequestHandler = async ({ url, locals }) => {

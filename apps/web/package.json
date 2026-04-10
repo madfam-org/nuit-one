@@ -21,7 +21,9 @@
     "@nuit-one/ui": "workspace:*",
     "drizzle-orm": "^0.39.0",
     "jose": "^6.0.0",
-    "lamejs": "^1.2.1"
+    "lamejs": "^1.2.1",
+    "pusher": "^5.3.3",
+    "pusher-js": "^8.5.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",

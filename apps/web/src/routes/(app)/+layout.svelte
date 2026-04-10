@@ -1,5 +1,5 @@
 <script lang="ts">
-  
+
   import {
     BottomBar,
     BottomTabs,
@@ -7,22 +7,44 @@
     SidebarItem,
     SidebarSection,
   } from '@nuit-one/ui';
-import type { Snippet } from 'svelte';
+  import { onDestroy } from 'svelte';
+  import type { Snippet } from 'svelte';
   import { page } from '$app/stores';
+  import LiveBadge from '$lib/components/LiveBadge.svelte';
   import { icons } from '$lib/icons';
   import { createLayoutStore } from '$lib/stores/layout.svelte';
+  import { getRealtimeStore } from '$lib/stores/realtime.svelte';
   import { getSessionStore } from '$lib/stores/session.svelte';
   import { getSidebarStore } from '$lib/stores/sidebar.svelte';
+  import type { LayoutData } from './$types';
 
   interface Props {
+    data: LayoutData;
     children: Snippet;
   }
 
-  const { children }: Props = $props();
+  const { data, children }: Props = $props();
 
   const sidebar = getSidebarStore();
   const layout = createLayoutStore();
   const session = getSessionStore();
+  const realtime = getRealtimeStore();
+
+  // Connect to Soketi real-time service
+  $effect(() => {
+    if (data.workspaceId && data.soketi?.appKey) {
+      realtime.connect(
+        data.workspaceId,
+        data.soketi.appKey,
+        data.soketi.host,
+        data.soketi.port,
+      );
+    }
+  });
+
+  onDestroy(() => {
+    realtime.disconnect();
+  });
 
   // Auto-collapse sidebar on tablet
   $effect(() => {
@@ -70,6 +92,14 @@ import type { Snippet } from 'svelte';
   {#if !layout.isMobile}
     <Sidebar collapsed={sidebar.collapsed} onToggle={() => sidebar.toggle()}>
       <SidebarSection>
+        {#if !sidebar.collapsed}
+          <div class="realtime-status">
+            {#if realtime.connected}
+              <span class="online-count">{realtime.onlineCount} online</span>
+            {/if}
+            <LiveBadge count={realtime.livePerformances.length} />
+          </div>
+        {/if}
         <SidebarItem
           href="/dashboard"
           icon={dashIcon}
@@ -158,5 +188,18 @@ import type { Snippet } from 'svelte';
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+
+  .realtime-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.6875rem;
+  }
+
+  .online-count {
+    color: #00ff88;
+    font-weight: 600;
   }
 </style>

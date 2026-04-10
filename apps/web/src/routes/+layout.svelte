@@ -1,6 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import { onNavigate } from '$app/navigation';
+  import OfflineIndicator from '$lib/components/OfflineIndicator.svelte';
 
   let { children } = $props();
 
@@ -18,3 +19,4 @@
 </script>
 
 {@render children()}
+<OfflineIndicator />

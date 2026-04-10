@@ -15,6 +15,8 @@ export interface SetlistTrackResult {
 export interface SetlistPlayerConfig {
   instrument: PlayableInstrument | null;
   deviceId: string | null;
+  inputType: 'microphone' | 'midi';
+  midiDeviceId: string | null;
 }
 
 // Module-level singleton state
@@ -157,6 +159,34 @@ export function getSetlistStore() {
       trackResults = [];
       isActive = false;
       playerConfigs = [];
+    },
+
+    /** Prefetch all stem audio for offline playback */
+    async prefetchStems(
+      stemUrlsFetcher: (trackId: string) => Promise<Record<string, string>>,
+      onProgress?: (completed: number, total: number) => void
+    ): Promise<void> {
+      let completed = 0;
+      const allUrls: string[] = [];
+
+      // Collect all stem URLs
+      for (const track of tracks) {
+        const urls = await stemUrlsFetcher(track.trackId);
+        allUrls.push(...Object.values(urls));
+      }
+
+      const total = allUrls.length;
+
+      // Prefetch each URL (triggers service worker caching)
+      for (const url of allUrls) {
+        try {
+          await fetch(url);
+        } catch {
+          // Ignore fetch errors during prefetch
+        }
+        completed++;
+        onProgress?.(completed, total);
+      }
     },
 
     /** Save player configurations for persistence across tracks */

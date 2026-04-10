@@ -1,5 +1,6 @@
 import { schema } from '@nuit-one/db';
 import { error } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db.js';
 import type { LayoutServerLoad } from './$types';
@@ -36,5 +37,10 @@ export const load: LayoutServerLoad = async ({ locals }) => {
       role: 'owner',
     },
     recentProjects,
+    soketi: {
+      appKey: env.SOKETI_APP_KEY ?? 'nuit-one-key',
+      host: env.SOKETI_HOST ?? 'localhost',
+      port: Number(env.SOKETI_PORT ?? '6001'),
+    },
   };
 };
