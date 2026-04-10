@@ -13,8 +13,8 @@ interface YtPlaylistEntry {
 
 const YOUTUBE_PLAYLISTS = [
   {
-    url: 'https://www.youtube.com/playlist?list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf',
-    name: 'YouTube Top Songs Global',
+    url: 'https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
+    name: 'YouTube Top 100 Music Videos',
   },
 ];
 
