@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
+import { generateAuthUrl, generateCodeVerifier, generateRandomState } from '$lib/server/auth.js';
 import type { PageServerLoad } from './$types';
-import { generateRandomState, generateCodeVerifier, generateAuthUrl } from '$lib/server/auth.js';
 
 export const load: PageServerLoad = async ({ cookies }) => {
   // In dev mode, let the page render with the dev bypass button

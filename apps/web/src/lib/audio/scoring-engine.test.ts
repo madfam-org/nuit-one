@@ -55,7 +55,7 @@ describe('ScoringEngine', () => {
       // Note center is at 1.25s, hit within 25ms
       const result = engine.evaluate(1.25, 40);
       expect(result).not.toBeNull();
-      expect(result!.judgment).toBe('perfect');
+      expect(result?.judgment).toBe('perfect');
     });
 
     it('judges great hit (timing within 50ms, pitch within 1 semitone)', () => {
@@ -64,7 +64,7 @@ describe('ScoringEngine', () => {
       // Hit 40ms off center with pitch 1 semitone away
       const result = engine.evaluate(1.25 + 0.04, 41);
       expect(result).not.toBeNull();
-      expect(result!.judgment).toBe('great');
+      expect(result?.judgment).toBe('great');
     });
 
     it('judges good hit (timing within 100ms)', () => {
@@ -73,7 +73,7 @@ describe('ScoringEngine', () => {
       // Hit 80ms off center
       const result = engine.evaluate(1.25 + 0.08, 42);
       expect(result).not.toBeNull();
-      expect(result!.judgment).toBe('good');
+      expect(result?.judgment).toBe('good');
     });
 
     it('does not re-hit already scored notes', () => {
@@ -115,7 +115,7 @@ describe('ScoringEngine', () => {
       // Note ends at 0.5s, check at 0.7s (200ms past, beyond 100ms window)
       const misses = engine.checkMisses(0.7);
       expect(misses).toHaveLength(1);
-      expect(misses[0]!.judgment).toBe('miss');
+      expect(misses[0]?.judgment).toBe('miss');
     });
 
     it('resets combo on miss', () => {
@@ -251,7 +251,7 @@ describe('ScoringEngine', () => {
       const engine = new ScoringEngine(notes);
       const judgment = engine.evaluate(1.25, 40, 80);
       expect(judgment).not.toBeNull();
-      expect(judgment!.velocityDelta).toBe(20);
+      expect(judgment?.velocityDelta).toBe(20);
     });
   });
 

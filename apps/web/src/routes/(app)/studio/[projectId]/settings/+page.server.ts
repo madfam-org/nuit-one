@@ -32,7 +32,7 @@ export const actions: Actions = {
     const formData = await request.formData();
     const tempoBpm = parseInt(formData.get('tempoBpm') as string, 10);
 
-    if (isNaN(tempoBpm) || tempoBpm < 20 || tempoBpm > 300) {
+    if (Number.isNaN(tempoBpm) || tempoBpm < 20 || tempoBpm > 300) {
       return { error: 'Tempo must be between 20 and 300 BPM' };
     }
 

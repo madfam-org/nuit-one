@@ -15,7 +15,7 @@ test.describe('Studio workspace', () => {
       // If the real server responds with 200, let it through.
       // Otherwise we verify the route structure exists.
       const response = await route.fetch().catch(() => null);
-      if (response && response.ok()) {
+      if (response?.ok()) {
         await route.fulfill({ response });
       } else {
         // The server will return 404 for a missing project, which is
@@ -28,6 +28,6 @@ test.describe('Studio workspace', () => {
     // The page should either show the project or an error page.
     // Either way, a response was received (route exists).
     expect(response).not.toBeNull();
-    expect(response!.status()).toBeLessThan(500);
+    expect(response?.status()).toBeLessThan(500);
   });
 });

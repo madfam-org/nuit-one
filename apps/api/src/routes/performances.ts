@@ -45,7 +45,7 @@ performanceRoutes.post('/', async (c) => {
     })
     .returning({ id: schema.performances.id });
 
-  return c.json({ id: row!.id }, 201);
+  return c.json({ id: row?.id }, 201);
 });
 
 // GET /api/performances/:trackId — Get all performances for a track

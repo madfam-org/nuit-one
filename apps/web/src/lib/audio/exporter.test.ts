@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 // OfflineAudioContext is not available in vitest (no Web Audio API)
 // Test the pure encoding helpers via the wav encoder

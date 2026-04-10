@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PerformanceResult } from '@nuit-one/shared';
   import { Button, GlassCard } from '@nuit-one/ui';
+  import { onDestroy, onMount } from 'svelte';
 
   interface Props {
     result: PerformanceResult;
@@ -24,6 +25,59 @@
   }
 
   const g = $derived(grade(result.accuracy));
+
+  let phase = $state<'enter' | 'grade' | 'score' | 'stats' | 'done'>('enter');
+  let displayScore = $state(0);
+  let showConfetti = $state(false);
+  let scoreRafId: number | null = null;
+  let prefersReducedMotion = $state(false);
+
+  onMount(() => {
+    prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+      phase = 'done';
+      displayScore = result.totalScore;
+      return;
+    }
+
+    // Phase progression
+    setTimeout(() => { phase = 'grade'; }, 200);
+    setTimeout(() => {
+      phase = 'score';
+      animateScore();
+    }, 900);
+    setTimeout(() => { phase = 'stats'; }, 1800);
+    setTimeout(() => { phase = 'done'; }, 2200);
+
+    // Confetti for S/A grades
+    if (result.accuracy >= 90) {
+      setTimeout(() => { showConfetti = true; }, 400);
+      setTimeout(() => { showConfetti = false; }, 3500);
+    }
+  });
+
+  onDestroy(() => {
+    if (scoreRafId) cancelAnimationFrame(scoreRafId);
+  });
+
+  function animateScore() {
+    const target = result.totalScore;
+    const startTime = performance.now();
+    const duration = 800;
+
+    function tick() {
+      const elapsed = performance.now() - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // cubic ease-out
+      displayScore = Math.round(target * eased);
+
+      if (t < 1) {
+        scoreRafId = requestAnimationFrame(tick);
+      }
+    }
+    scoreRafId = requestAnimationFrame(tick);
+  }
 </script>
 
 <div class="results-overlay">
@@ -35,13 +89,27 @@
       {/if}
       <p class="track-name">{trackTitle}</p>
 
-      <div class="grade" style:color={g.color} style:text-shadow="0 0 30px {g.color}">
-        {g.letter}
+      <div class="grade" class:grade-animate={phase !== 'enter' && !prefersReducedMotion} style:color={g.color} style:text-shadow="0 0 30px {g.color}">
+        {#if phase === 'enter' && !prefersReducedMotion}
+          &nbsp;
+        {:else}
+          {g.letter}
+        {/if}
       </div>
 
-      <div class="score-total">{result.totalScore.toLocaleString()}</div>
+      <div class="score-total">
+        {#if phase === 'enter' || phase === 'grade'}
+          {#if prefersReducedMotion}
+            {result.totalScore.toLocaleString()}
+          {:else}
+            &nbsp;
+          {/if}
+        {:else}
+          {displayScore.toLocaleString()}
+        {/if}
+      </div>
 
-      <div class="stats-grid">
+      <div class="stats-grid" class:stats-animate={phase !== 'enter' && phase !== 'grade' && phase !== 'score' && !prefersReducedMotion}>
         <div class="stat">
           <span class="stat-value" style:color="#00f5ff">{result.perfectCount}</span>
           <span class="stat-label">Perfect</span>
@@ -80,6 +148,17 @@
       </div>
     </div>
   </GlassCard>
+
+  {#if showConfetti}
+    <div class="confetti-container" aria-hidden="true">
+      {#each Array(25) as _, i}
+        <div
+          class="confetti-particle"
+          style="--x:{Math.random()*100}%;--delay:{Math.random()*0.5}s;--dur:{1.5+Math.random()*1.5}s;--color:{['#00f5ff','#ff00e5','#8b5cf6','#f59e0b','#00ff88'][i%5]}"
+        ></div>
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -93,6 +172,7 @@
     backdrop-filter: blur(8px);
     z-index: 100;
     padding: 2rem;
+    animation: nuit-fade-in 300ms ease forwards;
   }
 
   .results {
@@ -210,5 +290,46 @@
 
   .stats-link:hover {
     color: #00f5ff;
+  }
+
+  /* --- Animated reveal --- */
+
+  .grade-animate {
+    animation: nuit-scale-bounce 600ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .stats-animate > :global(*) {
+    opacity: 0;
+    animation: nuit-slide-up 350ms ease forwards;
+  }
+  .stats-animate > :global(*:nth-child(1)) { animation-delay: 0ms; }
+  .stats-animate > :global(*:nth-child(2)) { animation-delay: 100ms; }
+  .stats-animate > :global(*:nth-child(3)) { animation-delay: 200ms; }
+  .stats-animate > :global(*:nth-child(4)) { animation-delay: 300ms; }
+
+  /* --- Confetti --- */
+
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 150;
+    overflow: hidden;
+  }
+
+  .confetti-particle {
+    position: absolute;
+    top: -10px;
+    left: var(--x);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color);
+    animation: confetti-fall var(--dur) ease-in var(--delay) forwards;
+  }
+
+  @keyframes confetti-fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
 </style>

@@ -1,26 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import { vi } from 'vitest';
 
-/**
- * Chainable mock that returns itself for any chained method call,
- * resolving to a configurable default value at the end of the chain.
- */
-function createChainableMock(resolveValue: unknown = undefined) {
-  const mock: Record<string, unknown> = {};
-  const handler: ProxyHandler<typeof mock> = {
-    get(_target, prop) {
-      if (prop === 'then') {
-        // Make the proxy thenable so `await chain.method()` resolves
-        if (resolveValue === undefined) return undefined;
-        return (resolve: (v: unknown) => void) => resolve(resolveValue);
-      }
-      // Return a vi.fn that returns another chainable proxy
-      return vi.fn(() => new Proxy({}, handler));
-    },
-  };
-  return new Proxy(mock, handler);
-}
-
 export interface MockDbOverrides {
   /** Override return value for `db.query.<table>.findFirst()` */
   findFirst?: unknown;

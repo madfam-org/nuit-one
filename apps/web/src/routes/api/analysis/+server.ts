@@ -73,6 +73,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       })
       .returning();
 
-    return json({ id: inserted!.id }, { status: 201 });
+    return json({ id: inserted?.id }, { status: 201 });
   }
 };

@@ -15,7 +15,10 @@ import { goto } from '$app/navigation';
   import PlayerSlot from '$lib/components/PlayerSlot.svelte';
   import ResultsScreen from '$lib/components/ResultsScreen.svelte';
   import ScoreDisplay from '$lib/components/ScoreDisplay.svelte';
+  import SetlistInterstitial from '$lib/components/SetlistInterstitial.svelte';
+  import { icons } from '$lib/icons';
   import { createPlayerStore } from '$lib/stores/player.svelte.js';
+  import { getSetlistStore } from '$lib/stores/setlist.svelte.js';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -78,6 +81,9 @@ import { goto } from '$app/navigation';
   }
 
   const player = createPlayerStore();
+  const setlist = getSetlistStore();
+  const inSetlistMode = $derived(setlist.isActive);
+
   let gameState = $state<GameState>('idle');
   let countdown = $state(3);
   let scoreTickId: number | null = null;
@@ -92,6 +98,34 @@ import { goto } from '$app/navigation';
   );
   const canStart = $derived(activePlayers.length > 0);
 
+  let isFullscreen = $state(false);
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  $effect(() => {
+    function onFullscreenChange() {
+      isFullscreen = !!document.fullscreenElement;
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  });
+
+  $effect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (gameState === 'playing' && (e.key === 'f' || e.key === 'F')) {
+        toggleFullscreen();
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  });
+
   function addPlayer() {
     if (playerCount >= data.availableInstruments.length) return;
     playerCount++;
@@ -104,12 +138,26 @@ import { goto } from '$app/navigation';
     playerCount--;
   }
 
-  // Load audio devices on mount
+  // Load audio devices on mount + restore setlist player configs
   onMount(async () => {
     try {
       audioDevices = await getAudioInputDevices();
     } catch {
       // Mic permission denied or unavailable — will handle per-player
+    }
+
+    // If in setlist mode, restore instrument/device selections from previous track
+    if (inSetlistMode) {
+      const configs = setlist.getPlayerConfigs();
+      if (configs.length > 0) {
+        const restored: PlayerConfig[] = configs.map((c) => ({
+          ...createDefaultPlayerConfig(),
+          instrument: c.instrument,
+          deviceId: c.deviceId,
+        }));
+        players = restored;
+        playerCount = restored.length;
+      }
     }
   });
 
@@ -208,6 +256,7 @@ import { goto } from '$app/navigation';
   function endGame() {
     gameState = 'finished';
     player.pause();
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 
     if (scoreTickId) cancelAnimationFrame(scoreTickId);
 
@@ -230,6 +279,24 @@ import { goto } from '$app/navigation';
           }),
         }).catch((err) => console.error('Failed to save performance:', err));
       }
+    }
+
+    // Record results for setlist mode
+    if (inSetlistMode) {
+      const resultsMap: Record<string, PerformanceResult> = {};
+      for (const p of activePlayers) {
+        if (p.results && p.instrument) {
+          resultsMap[p.instrument] = p.results;
+        }
+      }
+      setlist.recordResult(resultsMap);
+
+      // Save player configs so they persist to the next track
+      setlist.setPlayerConfigs(
+        players
+          .filter((p) => p.instrument !== null)
+          .map((p) => ({ instrument: p.instrument, deviceId: p.deviceId })),
+      );
     }
   }
 
@@ -255,6 +322,34 @@ import { goto } from '$app/navigation';
       p.pitchDetector?.stop();
     }
     goto('/library');
+  }
+
+  function advanceSetlist() {
+    // Cleanup current track
+    player.destroy();
+    for (const p of activePlayers) {
+      p.pitchDetector?.stop();
+    }
+    if (scoreTickId) cancelAnimationFrame(scoreTickId);
+    scoreTickId = null;
+
+    setlist.advance();
+    const next = setlist.currentTrack;
+    if (next) {
+      goto(`/perform/${next.trackId}?setlist=true`);
+    }
+  }
+
+  function finishSetlist() {
+    // Cleanup current track
+    player.destroy();
+    for (const p of activePlayers) {
+      p.pitchDetector?.stop();
+    }
+    if (scoreTickId) cancelAnimationFrame(scoreTickId);
+    scoreTickId = null;
+
+    goto('/setlist/results');
   }
 
   onDestroy(() => {
@@ -318,7 +413,7 @@ import { goto } from '$app/navigation';
     </div>
 
   {:else if gameState === 'playing'}
-    <div class="playing-layout">
+    <div class="playing-layout" class:fullscreen={isFullscreen}>
       {#each activePlayers as p, i}
         {@const inst = p.instrument!}
         <div class="player-lane" style:border-color={INSTRUMENT_COLORS[inst]}>
@@ -343,6 +438,7 @@ import { goto } from '$app/navigation';
               recentJudgments={p.recentJudgments}
               minPitch={INSTRUMENT_MIDI_RANGES[inst].min}
               maxPitch={INSTRUMENT_MIDI_RANGES[inst].max}
+              combo={p.combo}
             />
           </div>
         </div>
@@ -352,15 +448,48 @@ import { goto } from '$app/navigation';
         <div class="transport-info">
           <span class="time-display">
             {formatTime(player.currentTime)} / {formatTime(player.duration)}
+            {#if inSetlistMode}
+              <span class="setlist-indicator">Track {setlist.currentIndex + 1} / {setlist.totalTracks}</span>
+            {/if}
           </span>
-          <Button variant="ghost" size="sm" onclick={endGame}>End Early</Button>
+          <div class="transport-actions">
+            <Button variant="ghost" size="sm" onclick={endGame}>End Early</Button>
+            <button
+              class="fullscreen-btn"
+              onclick={toggleFullscreen}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                <path d={isFullscreen ? icons.exitFullscreen : icons.fullscreen}/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   {/if}
 
   {#if gameState === 'finished' && activePlayers.some(p => p.results)}
-    {#if activePlayers.length === 1 && activePlayers[0]?.results}
+    {#if inSetlistMode}
+      {@const bestResult = activePlayers.reduce<PerformanceResult | null>((best, p) => {
+        if (!p.results) return best;
+        if (!best || p.results.accuracy > best.accuracy) return p.results;
+        return best;
+      }, null)}
+      {#if bestResult}
+        <SetlistInterstitial
+          trackTitle={data.track.title}
+          trackNumber={setlist.currentIndex + 1}
+          totalTracks={setlist.totalTracks}
+          results={bestResult}
+          nextTrackTitle={setlist.nextTrack?.title ?? null}
+          isLastTrack={setlist.isLastTrack}
+          onNext={advanceSetlist}
+          onFinish={finishSetlist}
+        />
+      {/if}
+    {:else if activePlayers.length === 1 && activePlayers[0]?.results}
       <ResultsScreen
         result={activePlayers[0].results}
         trackTitle={data.track.title}
@@ -629,5 +758,81 @@ import { goto } from '$app/navigation';
   .results-actions {
     display: flex;
     gap: 0.75rem;
+  }
+
+  .playing-layout.fullscreen {
+    padding: 0;
+    gap: 0;
+  }
+
+  .playing-layout.fullscreen .player-lane {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .playing-layout.fullscreen .lane-header {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+  }
+
+  .playing-layout.fullscreen .lane-label {
+    display: none;
+  }
+
+  .playing-layout.fullscreen .highway-area {
+    position: relative;
+  }
+
+  .playing-layout.fullscreen .transport-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(10, 10, 15, 0.8));
+    padding: 1rem;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+
+  .playing-layout.fullscreen .transport-area:hover,
+  .playing-layout.fullscreen .transport-area:focus-within {
+    opacity: 1;
+  }
+
+  .fullscreen-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #a0a0b0;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 150ms ease;
+  }
+
+  .fullscreen-btn:hover {
+    color: #00f5ff;
+    border-color: rgba(0, 245, 255, 0.4);
+  }
+
+  .transport-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .setlist-indicator {
+    margin-left: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #00f5ff;
+    background: rgba(0, 245, 255, 0.1);
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
   }
 </style>

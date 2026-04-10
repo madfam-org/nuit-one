@@ -15,6 +15,7 @@ export const icons = {
   menu: 'M3 12h18M3 6h18M3 18h18',
   x: 'M18 6L6 18M6 6l12 12',
   volume: 'M11 5L6 9H2v6h4l5 4V5z M19.07 4.93a10 10 0 0 1 0 14.14 M15.54 8.46a5 5 0 0 1 0 7.07',
+  setlist: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
   volumeOff: 'M11 5L6 9H2v6h4l5 4V5z M23 9l-6 6 M17 9l6 6',
   play: 'M5 3l14 9-14 9V3z',
   pause: 'M6 4h4v16H6zM14 4h4v16h-4z',
@@ -22,6 +23,8 @@ export const icons = {
   skipBack: 'M19 20L9 12l10-8v16z M5 19V5',
   skipForward: 'M5 4l10 8-10 8V4z M19 5v14',
   user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+  fullscreen: 'M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3',
+  exitFullscreen: 'M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4',
 } as const;
 
 export type IconName = keyof typeof icons;

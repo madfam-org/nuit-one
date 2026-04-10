@@ -30,8 +30,8 @@ describe('getAudioInputDevices', () => {
     const devices = await getAudioInputDevices();
 
     expect(devices).toHaveLength(2);
-    expect(devices[0]!.deviceId).toBe('mic1');
-    expect(devices[1]!.deviceId).toBe('mic2');
+    expect(devices[0]?.deviceId).toBe('mic1');
+    expect(devices[1]?.deviceId).toBe('mic2');
   });
 
   it('generates fallback labels for devices without labels', async () => {
@@ -53,7 +53,7 @@ describe('getAudioInputDevices', () => {
     const devices = await getAudioInputDevices();
 
     expect(devices).toHaveLength(1);
-    expect(devices[0]!.label).toBe('Input abcdef12');
+    expect(devices[0]?.label).toBe('Input abcdef12');
   });
 
   it('stops temporary stream tracks after enumeration', async () => {

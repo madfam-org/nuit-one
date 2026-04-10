@@ -38,7 +38,7 @@ export function analyzeDifficulty(notes: NoteEvent[], durationSeconds: number): 
   // Interval complexity (average interval size)
   let totalInterval = 0;
   for (let i = 1; i < notes.length; i++) {
-    totalInterval += Math.abs(notes[i]!.pitch - notes[i - 1]!.pitch);
+    totalInterval += Math.abs(notes[i]?.pitch - notes[i - 1]?.pitch);
   }
   const avgInterval = notes.length > 1 ? totalInterval / (notes.length - 1) : 0;
   const intervalComplexity = Math.min(1, avgInterval / 12); // octave = max

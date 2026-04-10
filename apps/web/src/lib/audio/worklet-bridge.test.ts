@@ -83,8 +83,8 @@ describe('WorkletBridge', () => {
       // Attempting to assign directly should have no effect or throw in strict mode.
       const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(bridge), 'state');
       expect(descriptor).toBeDefined();
-      expect(descriptor!.get).toBeDefined();
-      expect(descriptor!.set).toBeUndefined();
+      expect(descriptor?.get).toBeDefined();
+      expect(descriptor?.set).toBeUndefined();
     });
   });
 });

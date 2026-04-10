@@ -1,6 +1,6 @@
 import { schema } from '@nuit-one/db';
 import { error } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 
@@ -13,6 +13,10 @@ export const load: PageServerLoad = async ({ locals }) => {
     .from(schema.tracks)
     .where(eq(schema.tracks.userId, userId))
     .orderBy(desc(schema.tracks.createdAt));
+
+  const profile = await db.query.calibrationProfiles.findFirst({
+    where: and(eq(schema.calibrationProfiles.userId, userId), eq(schema.calibrationProfiles.isActive, true)),
+  });
 
   return {
     tracks: tracks.map((t) => ({
@@ -30,5 +34,6 @@ export const load: PageServerLoad = async ({ locals }) => {
       sortOrder: t.sortOrder ?? 0,
       createdAt: t.createdAt?.toISOString() ?? '',
     })),
+    hasCalibration: !!profile,
   };
 };

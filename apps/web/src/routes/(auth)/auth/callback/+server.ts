@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
 import { exchangeCodeForTokens } from '$lib/server/auth.js';
+import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
   const code = url.searchParams.get('code');

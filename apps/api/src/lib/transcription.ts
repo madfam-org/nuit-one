@@ -11,16 +11,20 @@ export function parseNoteEventsCsv(csvContent: string): NoteEvent[] {
   const lines = csvContent.trim().split('\n');
   const notes: NoteEvent[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i]!.split(',');
-    if (cols.length < 4) continue;
+    const cols = lines[i]?.split(',');
+    if (!cols || cols.length < 4) continue;
 
+    // biome-ignore lint/style/noNonNullAssertion: length check above guarantees these exist
     const startTime = parseFloat(cols[0]!);
+    // biome-ignore lint/style/noNonNullAssertion: length check above guarantees these exist
     const endTime = parseFloat(cols[1]!);
 
     notes.push({
       startTime,
       duration: endTime - startTime,
+      // biome-ignore lint/style/noNonNullAssertion: length check above guarantees these exist
       pitch: Math.round(parseFloat(cols[2]!)),
+      // biome-ignore lint/style/noNonNullAssertion: length check above guarantees these exist
       velocity: Math.round(parseFloat(cols[3]!)),
     });
   }

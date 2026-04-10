@@ -39,6 +39,9 @@ import type { Snippet } from 'svelte';
 {#snippet libIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.library}/></svg>
 {/snippet}
+{#snippet setlistIcon()}
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.setlist}/></svg>
+{/snippet}
 {#snippet studioIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.studio}/></svg>
 {/snippet}
@@ -52,6 +55,9 @@ import type { Snippet } from 'svelte';
 {/snippet}
 {#snippet mLibIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.library}/></svg>
+{/snippet}
+{#snippet mSetlistIcon()}
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.setlist}/></svg>
 {/snippet}
 {#snippet mStudioIcon()}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={icons.studio}/></svg>
@@ -76,6 +82,13 @@ import type { Snippet } from 'svelte';
           icon={libIcon}
           label="Library"
           active={$page.url.pathname.startsWith('/library')}
+          collapsed={sidebar.collapsed}
+        />
+        <SidebarItem
+          href="/setlist"
+          icon={setlistIcon}
+          label="Setlist"
+          active={$page.url.pathname.startsWith('/setlist')}
           collapsed={sidebar.collapsed}
         />
         <SidebarItem
@@ -116,6 +129,7 @@ import type { Snippet } from 'svelte';
       items={[
         { href: '/dashboard', label: 'Home', icon: mDashIcon },
         { href: '/library', label: 'Library', icon: mLibIcon },
+        { href: '/setlist', label: 'Setlist', icon: mSetlistIcon },
         { href: '/projects', label: 'Studio', icon: mStudioIcon },
         { href: '/settings', label: 'Settings', icon: mSettingsIcon },
       ]}

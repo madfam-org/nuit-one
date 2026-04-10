@@ -1,6 +1,6 @@
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
-import { verifyToken, refreshAccessToken } from '$lib/server/auth.js';
+import { refreshAccessToken, verifyToken } from '$lib/server/auth.js';
 
 const PUBLIC_PATH_PREFIXES = ['/auth/login', '/auth/callback', '/auth/logout'];
 
@@ -88,7 +88,7 @@ const auth: Handle = async ({ event, resolve }) => {
     event.locals.workspaceId = verified.workspaceId;
     event.locals.roles = verified.roles;
     return resolve(event);
-  } catch (err) {
+  } catch (_err) {
     // On token expiry, attempt refresh
     const refreshToken = event.cookies.get('nuit_refresh');
     if (refreshToken) {

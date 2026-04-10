@@ -68,6 +68,7 @@ importRoutes.post('/youtube', async (c) => {
         })
         .returning();
 
+      // biome-ignore lint/style/noNonNullAssertion: insert().returning() always returns the row
       const trackId = track!.id;
       const r2Key = `tracks/${trackId}/original/${safeTitle}.wav`;
 

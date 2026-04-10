@@ -15,13 +15,84 @@ import { onDestroy, onMount } from 'svelte';
     minPitch?: number;
     /** Maximum MIDI pitch to display (default: 72, C5) */
     maxPitch?: number;
+    /** Current combo count for milestone effects */
+    combo?: number;
   }
 
   const { notes, currentTime, lookAhead = 4, recentJudgments = [],
-          minPitch = 28, maxPitch = 72 }: Props = $props();
+          minPitch = 28, maxPitch = 72, combo = 0 }: Props = $props();
 
   let canvas: HTMLCanvasElement;
   let rafId: number;
+
+  // --- Particle & effect state ---
+  interface Particle {
+    x: number; y: number;
+    vx: number; vy: number;
+    life: number; maxLife: number;
+    color: string; radius: number;
+  }
+
+  let particles: Particle[] = [];
+  let lastHitTime = 0;
+  let lastJudgmentCount = 0;
+  let lastComboMilestone = 0;
+  let comboFlashStart = 0;
+  let prefersReducedMotion = false;
+
+  // Check reduced motion on mount
+  $effect(() => {
+    if (typeof window !== 'undefined') {
+      prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+  });
+
+  // Detect new judgments to trigger effects
+  $effect(() => {
+    if (recentJudgments.length > lastJudgmentCount) {
+      const latest = recentJudgments[recentJudgments.length - 1];
+      lastHitTime = performance.now();
+      if (latest?.judgment === 'perfect' && !prefersReducedMotion) {
+        spawnParticles();
+      }
+      lastJudgmentCount = recentJudgments.length;
+    }
+  });
+
+  // Detect combo milestones
+  $effect(() => {
+    const c = combo ?? 0;
+    const milestones = [10, 25, 50, 100];
+    for (const m of milestones) {
+      if (c >= m && lastComboMilestone < m) {
+        comboFlashStart = performance.now();
+        lastComboMilestone = m;
+      }
+    }
+    if (c === 0) lastComboMilestone = 0;
+  });
+
+  function spawnParticles() {
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const spawnX = rect.width * 0.15;
+    const midY = rect.height / 2;
+
+    for (let i = 0; i < 7; i++) {
+      particles.push({
+        x: spawnX,
+        y: midY + (Math.random() - 0.5) * rect.height * 0.3,
+        vx: (Math.random() - 0.3) * 4,
+        vy: (Math.random() - 0.5) * 5,
+        life: 400 + Math.random() * 200,
+        maxLife: 400 + Math.random() * 200,
+        color: '#00f5ff',
+        radius: 2 + Math.random() * 2,
+      });
+    }
+    // Cap particles
+    if (particles.length > 50) particles = particles.slice(-50);
+  }
 
   const PITCH_RANGE = $derived(maxPitch - minPitch);
 
@@ -135,6 +206,46 @@ import { onDestroy, onMount } from 'svelte';
       }
     }
 
+    // --- Visual effects (skip if user prefers reduced motion) ---
+    if (!prefersReducedMotion) {
+      // Hit flash effect
+      const timeSinceHit = performance.now() - lastHitTime;
+      if (timeSinceHit < 150) {
+        const alpha = 0.3 * (1 - timeSinceHit / 150);
+        const gradient = ctx.createRadialGradient(hitX, h / 2, 0, hitX, h / 2, h * 0.4);
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(hitX - h * 0.4, 0, h * 0.8, h);
+      }
+
+      // Combo milestone flash
+      const timeSinceCombo = performance.now() - comboFlashStart;
+      if (timeSinceCombo < 300 && comboFlashStart > 0) {
+        const cAlpha = 0.06 * (1 - timeSinceCombo / 300);
+        ctx.fillStyle = `rgba(0, 245, 255, ${cAlpha})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      // Particles
+      const now = performance.now();
+      particles = particles.filter(p => {
+        p.life -= 16; // ~60fps
+        if (p.life <= 0) return false;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.1; // gravity
+        const pAlpha = p.life / p.maxLife;
+        ctx.globalAlpha = pAlpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * pAlpha, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        return true;
+      });
+    }
+
     rafId = requestAnimationFrame(draw);
   }
 
@@ -159,7 +270,8 @@ import { onDestroy, onMount } from 'svelte';
 <style>
   .highway-container {
     width: 100%;
-    height: 300px;
+    height: 100%;
+    min-height: 200px;
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.06);

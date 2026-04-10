@@ -6,7 +6,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.userId) throw error(401, 'Unauthorized');
-  const userId = locals.userId;
+  const _userId = locals.userId;
   const workspaceId = locals.workspaceId ?? '';
 
   const projects = await db
@@ -60,7 +60,7 @@ export const actions: Actions = {
       })
       .returning();
 
-    throw redirect(303, `/studio/${project!.id}`);
+    throw redirect(303, `/studio/${project?.id}`);
   },
 
   rename: async ({ request }) => {

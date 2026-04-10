@@ -285,7 +285,7 @@ describe('effects', () => {
     });
 
     it('durations increase from fast to slow', () => {
-      const extractMs = (v: string) => parseInt(v.match(/(\d+)ms/)![1]!, 10);
+      const extractMs = (v: string) => parseInt(v.match(/(\d+)ms/)?.[1]!, 10);
       const fast = extractMs(effects.transition.fast);
       const base = extractMs(effects.transition.base);
       const slow = extractMs(effects.transition.slow);

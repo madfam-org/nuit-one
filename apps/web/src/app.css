@@ -54,3 +54,80 @@ body {
 .glow-violet {
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
 }
+
+/* ═══ Animation Utilities ═══ */
+
+@keyframes nuit-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nuit-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nuit-scale-bounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes nuit-count-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+/* View Transitions */
+::view-transition-old(root) {
+  animation: 250ms cubic-bezier(0.4, 0, 0.2, 1) both nuit-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 250ms cubic-bezier(0.4, 0, 0.2, 1) both nuit-fade-in;
+}
+
+@keyframes nuit-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Reduced Motion — respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}

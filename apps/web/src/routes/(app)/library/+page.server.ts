@@ -10,7 +10,22 @@ export const load: PageServerLoad = async ({ locals }) => {
   const workspaceId = locals.workspaceId ?? '';
 
   const [tracks, projects] = await Promise.all([
-    db.select().from(schema.tracks).where(eq(schema.tracks.userId, userId)).orderBy(desc(schema.tracks.createdAt)),
+    db
+      .select({
+        id: schema.tracks.id,
+        title: schema.tracks.title,
+        status: schema.tracks.status,
+        instrument: schema.tracks.instrument,
+        createdAt: schema.tracks.createdAt,
+        hasNotes: sql<boolean>`EXISTS (
+          SELECT 1 FROM stems
+          WHERE stems.track_id = ${schema.tracks.id}
+          AND stems.midi_data IS NOT NULL
+        )`.as('has_notes'),
+      })
+      .from(schema.tracks)
+      .where(eq(schema.tracks.userId, userId))
+      .orderBy(desc(schema.tracks.createdAt)),
     db
       .select({
         id: schema.projects.id,
@@ -34,6 +49,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       status: t.status,
       instrument: t.instrument,
       createdAt: t.createdAt?.toISOString() ?? '',
+      hasNotes: !!t.hasNotes,
     })),
     projects: projects.map((p) => ({
       id: p.id,

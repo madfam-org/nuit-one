@@ -49,8 +49,8 @@ describe('parseNoteEventsCsv', () => {
     const csv = ['start_time_s,end_time_s,pitch_midi,velocity,pitch_bend', '0.0,1.0,44.7,79.6,0.0'].join('\n');
 
     const notes = parseNoteEventsCsv(csv);
-    expect(notes[0]!.pitch).toBe(45);
-    expect(notes[0]!.velocity).toBe(80);
+    expect(notes[0]?.pitch).toBe(45);
+    expect(notes[0]?.velocity).toBe(80);
   });
 
   it('returns empty array for header-only CSV', () => {

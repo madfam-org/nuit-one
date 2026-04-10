@@ -144,9 +144,7 @@ export async function exchangeCodeForTokens(code: string, codeVerifier: string):
   return (await response.json()) as TokenResponse;
 }
 
-export async function refreshAccessToken(
-  refreshToken: string,
-): Promise<TokenResponse> {
+export async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
   const response = await fetch(`${januaUrl()}/oauth/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

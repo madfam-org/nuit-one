@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { WorkerManager } from './worker-manager.js';
 
 // Mock Worker
@@ -24,7 +24,7 @@ describe('WorkerManager', () => {
     expect(worker.postMessage).toHaveBeenCalled();
 
     // Trigger result
-    const msg = worker.postMessage.mock.calls[0]![0] as { payload: { id: string } };
+    const msg = worker.postMessage.mock.calls[0]?.[0] as { payload: { id: string } };
     worker.onmessage?.({
       data: {
         type: 'result',
@@ -41,7 +41,7 @@ describe('WorkerManager', () => {
     const promise = manager.run('test', { data: 1 });
 
     const worker = (manager as unknown as { worker: MockWorker }).worker;
-    const msg = worker.postMessage.mock.calls[0]![0] as { payload: { id: string } };
+    const msg = worker.postMessage.mock.calls[0]?.[0] as { payload: { id: string } };
 
     worker.onmessage?.({
       data: {
@@ -66,7 +66,7 @@ describe('WorkerManager', () => {
     const promise = manager.run('test', { data: 1 }, [], onProgress);
 
     const worker = (manager as unknown as { worker: MockWorker }).worker;
-    const msg = worker.postMessage.mock.calls[0]![0] as { payload: { id: string } };
+    const msg = worker.postMessage.mock.calls[0]?.[0] as { payload: { id: string } };
 
     worker.onmessage?.({
       data: { type: 'progress', payload: { id: msg.payload.id, progress: 0.5 } },

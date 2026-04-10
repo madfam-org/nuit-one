@@ -13,6 +13,6 @@ test.describe('Performance mode', () => {
     // The page should either render the perform UI or show an error
     // (404/400 if track not in DB). Either way, no 500.
     expect(response).not.toBeNull();
-    expect(response!.status()).toBeLessThan(500);
+    expect(response?.status()).toBeLessThan(500);
   });
 });

@@ -78,13 +78,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     })
     .returning();
 
-  const r2Key = `tracks/${track!.id}/original/${filename}`;
+  const r2Key = `tracks/${track?.id}/original/${filename}`;
 
   // Update track with R2 key
-  await db.update(schema.tracks).set({ r2Key }).where(eq(schema.tracks.id, track!.id));
+  await db.update(schema.tracks).set({ r2Key }).where(eq(schema.tracks.id, track?.id));
 
   // Generate signed upload URL
   const uploadUrl = await getUploadUrl(r2Key, contentType);
 
-  return json({ trackId: track!.id, uploadUrl });
+  return json({ trackId: track?.id, uploadUrl });
 };

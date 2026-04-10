@@ -28,8 +28,8 @@ describe('getJob', () => {
     const created = createJob('track-1');
     const retrieved = getJob(created.id);
     expect(retrieved).toBeDefined();
-    expect(retrieved!.id).toBe(created.id);
-    expect(retrieved!.trackId).toBe('track-1');
+    expect(retrieved?.id).toBe(created.id);
+    expect(retrieved?.trackId).toBe('track-1');
   });
 });
 
@@ -39,8 +39,8 @@ describe('updateJob', () => {
     updateJob(job.id, { status: 'processing', progress: 50 });
 
     const updated = getJob(job.id);
-    expect(updated!.status).toBe('processing');
-    expect(updated!.progress).toBe(50);
+    expect(updated?.status).toBe('processing');
+    expect(updated?.progress).toBe(50);
   });
 
   it('updates error field', () => {
@@ -48,8 +48,8 @@ describe('updateJob', () => {
     updateJob(job.id, { status: 'error', error: 'something broke' });
 
     const updated = getJob(job.id);
-    expect(updated!.status).toBe('error');
-    expect(updated!.error).toBe('something broke');
+    expect(updated?.status).toBe('error');
+    expect(updated?.error).toBe('something broke');
   });
 
   it('does nothing for non-existent job', () => {

@@ -47,6 +47,17 @@
                 {/if}
               </div>
               <div class="item-end">
+                {#if track.status === 'ready' && track.hasNotes}
+                  <button
+                    class="quick-play-btn"
+                    aria-label="Play {track.title}"
+                    onclick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/perform/${track.id}`; }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                {/if}
                 <NeonBadge color={statusColors[track.status] ?? 'cyan'}>{track.status}</NeonBadge>
               </div>
             </a>
@@ -113,11 +124,12 @@
     border-radius: 8px;
     text-decoration: none;
     color: #f0f0f5;
-    transition: background 0.15s ease;
+    transition: transform 150ms ease, background 150ms ease;
   }
 
   .list-item:hover {
     background: rgba(18, 18, 26, 0.9);
+    transform: scale(1.01);
   }
 
   .item-main {
@@ -138,6 +150,28 @@
 
   .item-end {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .quick-play-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 245, 255, 0.15);
+    color: #00f5ff;
+    text-decoration: none;
+    transition: all 150ms ease;
+    flex-shrink: 0;
+  }
+
+  .quick-play-btn:hover {
+    background: rgba(0, 245, 255, 0.3);
+    transform: scale(1.1);
   }
 
   .empty-state {
