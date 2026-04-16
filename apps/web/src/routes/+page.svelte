@@ -4,7 +4,7 @@
   <meta property="og:title" content="Nuit One — Your Instruments. Real Scores. One Stage." />
   <meta property="og:description" content="AI-powered stem separation meets real-time instrument scoring. Upload any song, pick your instrument, and perform." />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Nuit One" />
+  <meta property="og:site_name" content="Nuit One by MADFAM" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Nuit One — Your Instruments. Real Scores. One Stage." />
   <meta name="twitter:description" content="AI-powered stem separation meets real-time instrument scoring. Upload any song, pick your instrument, and perform." />
@@ -211,7 +211,17 @@
       <span class="footer-brand">
         <span class="footer-brand-accent">Nuit</span> One
       </span>
-      <span class="footer-copy">&copy; {new Date().getFullYear()} Nuit One. All rights reserved.</span>
+      <span class="footer-copy">
+        &copy; {new Date().getFullYear()} Nuit One. By
+        <a href="https://madfam.io" style="color: var(--text-secondary); text-decoration: none;" onmouseenter="this.style.color='var(--text-primary)'" onmouseleave="this.style.color='var(--text-secondary)'">Innovaciones MADFAM</a>.
+      </span>
+    </div>
+    <div class="footer-links">
+      <a href="https://madfam.io/privacy">Privacy</a>
+      <span aria-hidden="true">&middot;</span>
+      <a href="https://madfam.io/terms">Terms</a>
+      <span aria-hidden="true">&middot;</span>
+      <a href="https://status.madfam.io">Status</a>
     </div>
   </footer>
 </div>
@@ -718,6 +728,27 @@
   .footer-copy {
     font-size: 0.85rem;
     color: var(--text-muted);
+  }
+
+  .footer-links {
+    max-width: 1200px;
+    margin: 0.75rem auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover {
+    color: var(--text-secondary);
   }
 
   @media (max-width: 480px) {
