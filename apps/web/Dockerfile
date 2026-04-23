@@ -20,4 +20,11 @@ COPY --from=build /app/apps/web/package.json .
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
+
+
+# Audit 2026-04-23 (cross-cutting I.1): run as non-root `node` (uid 1000)
+# baked into the node:22-slim base image.
+RUN chown -R node:node /app
+USER node
+
 CMD ["node", "build"]
