@@ -213,7 +213,7 @@
       </span>
       <span class="footer-copy">
         &copy; {new Date().getFullYear()} Nuit One. By
-        <a href="https://madfam.io" style="color: var(--text-secondary); text-decoration: none;" onmouseenter="this.style.color='var(--text-primary)'" onmouseleave="this.style.color='var(--text-secondary)'">Innovaciones MADFAM</a>.
+        <a href="https://madfam.io" class="footer-brand-link">Innovaciones MADFAM</a>.
       </span>
     </div>
     <div class="footer-links">
@@ -728,6 +728,17 @@
   .footer-copy {
     font-size: 0.85rem;
     color: var(--text-muted);
+  }
+
+  .footer-brand-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-brand-link:hover,
+  .footer-brand-link:focus-visible {
+    color: var(--text-primary);
   }
 
   .footer-links {
