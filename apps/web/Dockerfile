@@ -13,10 +13,18 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm --filter @nuit-one/web build
 
+# Produce a self-contained prod-only deployment for the web workspace,
+# mirroring apps/api/Dockerfile. SvelteKit's adapter-node leaves runtime
+# deps (e.g. `jose`) external, so the runtime image must ship a populated
+# node_modules — without this, the server crashes at first import with
+# `Cannot find package 'jose'`.
+RUN pnpm --filter @nuit-one/web deploy --prod /deploy
+
 FROM base AS runtime
 WORKDIR /app
+COPY --from=build /deploy/package.json ./package.json
+COPY --from=build /deploy/node_modules ./node_modules
 COPY --from=build /app/apps/web/build ./build
-COPY --from=build /app/apps/web/package.json .
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
