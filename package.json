@@ -1,6 +1,7 @@
 {
   "name": "nuit-one",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "packageManager": "pnpm@9.15.4",
   "engines": {
