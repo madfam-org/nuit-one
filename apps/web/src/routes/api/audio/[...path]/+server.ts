@@ -62,12 +62,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
       // Fire-and-forget: don't block the audio response for DB writes
       db.update(schema.contentSources)
         .set({ lastAccessedAt: new Date() })
-        .where(
-          and(
-            eq(schema.contentSources.id, contentSourceId),
-            lt(schema.contentSources.lastAccessedAt, oneHourAgo),
-          ),
-        )
+        .where(and(eq(schema.contentSources.id, contentSourceId), lt(schema.contentSources.lastAccessedAt, oneHourAgo)))
         .catch(() => {});
     }
   }

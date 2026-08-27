@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
-  import { createAudienceReceiver, type AudienceMessage } from '$lib/audience-channel.js';
+  import { onDestroy, onMount, untrack } from 'svelte';
+  import { type AudienceMessage, createAudienceReceiver } from '$lib/audience-channel.js';
   import AudienceHighway from '$lib/components/AudienceHighway.svelte';
   import type { PageData } from './$types';
 
@@ -10,7 +10,10 @@
   let currentTime = $state(0);
   let duration = $state(0);
   let countdown = $state(0);
-  let trackTitle = $state(data.track?.title ?? '');
+  // Seeded once from the loaded track, then updated by realtime messages
+  // (see the receiver handler below); the initial capture from `data` is
+  // intentional, so untrack marks it as a deliberate non-reactive read.
+  let trackTitle = $state(untrack(() => data.track?.title ?? ''));
   let players = $state<
     Array<{
       label: string;

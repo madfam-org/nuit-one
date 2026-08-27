@@ -5,9 +5,9 @@ import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { runDemucs } from '../lib/demucs.js';
 import { createJob, updateJob } from '../lib/job-manager.js';
+import { extractMedia } from '../lib/media-extractor.js';
 import { uploadFile } from '../lib/storage.js';
 import { runTranscription } from '../lib/transcription.js';
-import { extractMedia } from '../lib/media-extractor.js';
 import { normalizeUrl } from '../lib/url-normalizer.js';
 
 export const importRoutes = new Hono();
@@ -114,10 +114,7 @@ importRoutes.post('/youtube', async (c) => {
     r2Prefix = `content/${csId}`;
 
     // Update r2KeyPrefix with the generated ID
-    await db
-      .update(schema.contentSources)
-      .set({ r2KeyPrefix: r2Prefix })
-      .where(eq(schema.contentSources.id, csId));
+    await db.update(schema.contentSources).set({ r2KeyPrefix: r2Prefix }).where(eq(schema.contentSources.id, csId));
   }
 
   // Create job immediately so we can return jobId
@@ -218,10 +215,7 @@ importRoutes.post('/youtube', async (c) => {
       await db.update(schema.tracks).set({ status: 'ready' }).where(eq(schema.tracks.id, trackId));
 
       // Mark content source ready
-      await db
-        .update(schema.contentSources)
-        .set({ status: 'ready' })
-        .where(eq(schema.contentSources.id, csId));
+      await db.update(schema.contentSources).set({ status: 'ready' }).where(eq(schema.contentSources.id, csId));
 
       // Also mark any other tracks referencing this content source as ready
       await db
@@ -234,10 +228,7 @@ importRoutes.post('/youtube', async (c) => {
       console.error(`Job ${job.id} failed:`, err);
       const message = err instanceof Error ? err.message : 'Import failed';
       updateJob(job.id, { status: 'error', error: message });
-      await db
-        .update(schema.contentSources)
-        .set({ status: 'error' })
-        .where(eq(schema.contentSources.id, csId));
+      await db.update(schema.contentSources).set({ status: 'error' }).where(eq(schema.contentSources.id, csId));
     } finally {
       // Clean up temp directory
       if (workDir) {

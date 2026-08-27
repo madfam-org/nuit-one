@@ -32,16 +32,14 @@ describe('normalizeUrl', () => {
 
     it('strips extra query params like t and list', () => {
       const result = normalizeUrl(
-        'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10&list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf'
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10&list=PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf',
       );
       expect(result.normalizedUrl).toBe('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
       expect(result.sourceId).toBe('dQw4w9WgXcQ');
     });
 
     it('strips UTM tracking params from YouTube URLs', () => {
-      const result = normalizeUrl(
-        'https://www.youtube.com/watch?v=abc&utm_source=twitter&utm_medium=social'
-      );
+      const result = normalizeUrl('https://www.youtube.com/watch?v=abc&utm_source=twitter&utm_medium=social');
       expect(result.normalizedUrl).toBe('https://www.youtube.com/watch?v=abc');
     });
 
@@ -81,9 +79,7 @@ describe('normalizeUrl', () => {
 
   describe('Generic URLs', () => {
     it('strips UTM tracking params', () => {
-      const result = normalizeUrl(
-        'https://bandcamp.com/album/test?utm_source=twitter&utm_campaign=share'
-      );
+      const result = normalizeUrl('https://bandcamp.com/album/test?utm_source=twitter&utm_campaign=share');
       expect(result.normalizedUrl).not.toContain('utm_source');
       expect(result.normalizedUrl).not.toContain('utm_campaign');
     });

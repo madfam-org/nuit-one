@@ -17,12 +17,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     })
     .from(schema.tracks)
     .innerJoin(schema.projects, eq(schema.tracks.projectId, schema.projects.id))
-    .where(
-      and(
-        eq(schema.tracks.id, params.id),
-        eq(schema.projects.workspaceId, workspaceId)
-      )
-    )
+    .where(and(eq(schema.tracks.id, params.id), eq(schema.projects.workspaceId, workspaceId)))
     .limit(1);
 
   const track = trackRow[0];
@@ -63,7 +58,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     .select({
       userId: schema.performances.userId,
       bestScore: sql<number>`MAX(COALESCE((${schema.performances.midiData}->>'totalScore')::int, 0))`.as('best_score'),
-      bestAccuracy: sql<number>`MAX(COALESCE((${schema.performances.midiData}->>'accuracy')::float, 0))`.as('best_accuracy'),
+      bestAccuracy: sql<number>`MAX(COALESCE((${schema.performances.midiData}->>'accuracy')::float, 0))`.as(
+        'best_accuracy',
+      ),
       bestCombo: sql<number>`MAX(COALESCE((${schema.performances.midiData}->>'maxCombo')::int, 0))`.as('best_combo'),
       playCount: sql<number>`COUNT(*)::int`.as('play_count'),
       lastPlayed: sql<string>`MAX(${schema.performances.createdAt})`.as('last_played'),

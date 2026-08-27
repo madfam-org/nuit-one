@@ -15,10 +15,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
   if (query) {
     conditions.push(
-      or(
-        ilike(schema.catalogTracks.title, `%${query}%`),
-        ilike(schema.catalogTracks.artist, `%${query}%`),
-      ),
+      or(ilike(schema.catalogTracks.title, `%${query}%`), ilike(schema.catalogTracks.artist, `%${query}%`)),
     );
   }
 

@@ -1,8 +1,8 @@
 import { schema } from '@nuit-one/db';
 import type { NoteEvent } from '@nuit-one/shared';
 import { error } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
 import { and, eq } from 'drizzle-orm';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db.js';
 import type { PageServerLoad } from './$types';
 

@@ -17,9 +17,7 @@ let client = $state<Pusher | null>(null);
 let connected = $state(false);
 let onlineMembers = $state<OnlineMember[]>([]);
 let livePerformances = $state<LivePerformance[]>([]);
-let recentCompletions = $state<
-  Array<{ userId: string; trackId: string; totalScore: number; accuracy: number }>
->([]);
+let recentCompletions = $state<Array<{ userId: string; trackId: string; totalScore: number; accuracy: number }>>([]);
 
 export function getRealtimeStore() {
   return {
@@ -60,10 +58,7 @@ export function getRealtimeStore() {
         const presence = client.subscribe(`presence-workspace-${workspaceId}`);
         presence.bind(
           'pusher:subscription_succeeded',
-          (members: {
-            count: number;
-            each: (cb: (member: { id: string }) => void) => void;
-          }) => {
+          (members: { count: number; each: (cb: (member: { id: string }) => void) => void }) => {
             const list: OnlineMember[] = [];
             members.each((m) => list.push({ userId: m.id }));
             onlineMembers = list;
@@ -81,12 +76,7 @@ export function getRealtimeStore() {
         const workspace = client.subscribe(`private-workspace-${workspaceId}`);
         workspace.bind(
           'performance:completed',
-          (data: {
-            userId: string;
-            trackId: string;
-            totalScore: number;
-            accuracy: number;
-          }) => {
+          (data: { userId: string; trackId: string; totalScore: number; accuracy: number }) => {
             recentCompletions = [data, ...recentCompletions.slice(0, 9)];
           },
         );

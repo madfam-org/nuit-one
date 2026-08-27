@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  
   import { Button, GlassCard } from '@nuit-one/ui';
+import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { getSetlistStore } from '$lib/stores/setlist.svelte.js';
   import type { PageData } from './$types';

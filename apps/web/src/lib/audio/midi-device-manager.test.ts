@@ -73,9 +73,7 @@ describe('getMidiInputDevices', () => {
   });
 
   it('uses fallback name for devices without name', async () => {
-    const mockInputs = new Map([
-      ['id-1', { id: 'id-1', name: null, manufacturer: '' }],
-    ]);
+    const mockInputs = new Map([['id-1', { id: 'id-1', name: null, manufacturer: '' }]]);
     const mockAccess = { inputs: mockInputs };
 
     Object.defineProperty(globalThis, 'navigator', {

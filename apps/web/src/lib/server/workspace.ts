@@ -10,10 +10,7 @@ export async function ensureWorkspaceMember(
 ): Promise<void> {
   // Check if already exists
   const existing = await db.query.workspaceMembers.findFirst({
-    where: and(
-      eq(schema.workspaceMembers.workspaceId, workspaceId),
-      eq(schema.workspaceMembers.userId, userId),
-    ),
+    where: and(eq(schema.workspaceMembers.workspaceId, workspaceId), eq(schema.workspaceMembers.userId, userId)),
   });
 
   if (existing) return;

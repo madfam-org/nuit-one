@@ -132,7 +132,7 @@ const auth: Handle = async ({ event, resolve }) => {
 
 export const handle = sequence(securityHeaders, auth);
 
-export const handleError: HandleServerError = async ({ error, event, status, message }) => {
+export const handleError: HandleServerError = async ({ error, event, status }) => {
   const id = crypto.randomUUID();
   console.error(`[${id}] ${event.request.method} ${event.url.pathname}:`, error);
 

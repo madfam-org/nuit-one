@@ -12,7 +12,7 @@ import { goto } from '$app/navigation';
   import { createAudienceSender } from '$lib/audience-channel.js';
   import { type AudioInputDevice, getAudioInputDevices } from '$lib/audio/device-manager.js';
   import type { InputSource } from '$lib/audio/input-source.js';
-  import { type MidiInputDevice, getMidiInputDevices, isMidiSupported } from '$lib/audio/midi-device-manager.js';
+  import { getMidiInputDevices, isMidiSupported, type MidiInputDevice } from '$lib/audio/midi-device-manager.js';
   import { MidiInput } from '$lib/audio/midi-input.js';
   import { PitchDetector } from '$lib/audio/pitch-detector.js';
   import { ScoringEngine } from '$lib/audio/scoring-engine.js';

@@ -26,9 +26,7 @@ export type {
   PerformanceResult,
   SavePerformanceRequest,
 } from './game.js';
-export type {
-  LeaderboardEntry,
-} from './leaderboard.js';
+export type { LeaderboardEntry } from './leaderboard.js';
 export type {
   MidiEvent,
   MidiNote,
