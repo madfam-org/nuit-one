@@ -7,8 +7,8 @@
     SidebarItem,
     SidebarSection,
   } from '@nuit-one/ui';
-  import { onDestroy } from 'svelte';
   import type { Snippet } from 'svelte';
+  import { onDestroy } from 'svelte';
   import { page } from '$app/stores';
   import LiveBadge from '$lib/components/LiveBadge.svelte';
   import { icons } from '$lib/icons';

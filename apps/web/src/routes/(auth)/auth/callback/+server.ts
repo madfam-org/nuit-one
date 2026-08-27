@@ -42,7 +42,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
   }
 
   // Exchange code for tokens
-  let tokens;
+  let tokens: Awaited<ReturnType<typeof exchangeCodeForTokens>>;
   try {
     tokens = await exchangeCodeForTokens(code, codeVerifier);
   } catch {

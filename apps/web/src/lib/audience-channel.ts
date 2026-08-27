@@ -34,10 +34,7 @@ export type AudienceMessage =
     }
   | {
       type: 'notes';
-      instruments: Record<
-        string,
-        { notes: NoteEvent[]; minPitch: number; maxPitch: number; color: string }
-      >;
+      instruments: Record<string, { notes: NoteEvent[]; minPitch: number; maxPitch: number; color: string }>;
     };
 
 export function createAudienceSender(trackId: string) {
@@ -52,10 +49,7 @@ export function createAudienceSender(trackId: string) {
   };
 }
 
-export function createAudienceReceiver(
-  trackId: string,
-  onMessage: (msg: AudienceMessage) => void,
-) {
+export function createAudienceReceiver(trackId: string, onMessage: (msg: AudienceMessage) => void) {
   const channel = new BroadcastChannel(`${AUDIENCE_CHANNEL_PREFIX}-${trackId}`);
   channel.onmessage = (e: MessageEvent) => onMessage(e.data as AudienceMessage);
   return {

@@ -27,10 +27,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   if (!track) throw error(404, 'Track not found');
 
-  const trackStems = await db
-    .select()
-    .from(schema.stems)
-    .where(eq(schema.stems.trackId, track.id));
+  const trackStems = await db.select().from(schema.stems).where(eq(schema.stems.trackId, track.id));
 
   const stemsWithNotes: Record<string, { notes: NoteEvent[] }> = {};
 

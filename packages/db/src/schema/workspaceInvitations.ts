@@ -6,7 +6,9 @@ export const workspaceInvitations = pgTable('workspace_invitations', {
   email: text('email').notNull(),
   role: text('role', {
     enum: ['owner', 'admin', 'manager', 'member', 'viewer'],
-  }).notNull().default('member'),
+  })
+    .notNull()
+    .default('member'),
   invitedBy: uuid('invited_by').notNull(),
   token: text('token').notNull().unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),

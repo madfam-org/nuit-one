@@ -61,10 +61,7 @@ export const load: PageServerLoad = async ({ locals }) => {
     .select(catalogFields)
     .from(schema.catalogTracks)
     .where(
-      and(
-        eq(schema.catalogTracks.chartDate, latestDate),
-        eq(schema.catalogTracks.chartName, 'Spotify Global Top 50'),
-      ),
+      and(eq(schema.catalogTracks.chartDate, latestDate), eq(schema.catalogTracks.chartName, 'Spotify Global Top 50')),
     )
     .orderBy(schema.catalogTracks.chartRank)
     .limit(3);
@@ -90,12 +87,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   const genreRows = await db
     .select({ genre: schema.catalogTracks.genre })
     .from(schema.catalogTracks)
-    .where(
-      and(
-        eq(schema.catalogTracks.chartDate, latestDate),
-        sql`${schema.catalogTracks.genre} IS NOT NULL`,
-      ),
-    )
+    .where(and(eq(schema.catalogTracks.chartDate, latestDate), sql`${schema.catalogTracks.genre} IS NOT NULL`))
     .groupBy(schema.catalogTracks.genre);
   const genres = genreRows.map((r) => r.genre).filter(Boolean) as string[];
 
@@ -111,12 +103,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       sourceUrl: schema.contentSources.originalUrl,
     })
     .from(schema.contentSources)
-    .where(
-      and(
-        eq(schema.contentSources.workspaceId, workspaceId),
-        eq(schema.contentSources.status, 'ready'),
-      ),
-    )
+    .where(and(eq(schema.contentSources.workspaceId, workspaceId), eq(schema.contentSources.status, 'ready')))
     .orderBy(desc(schema.contentSources.lastAccessedAt))
     .limit(10);
 

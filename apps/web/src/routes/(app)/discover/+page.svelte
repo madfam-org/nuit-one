@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { GlassCard } from '@nuit-one/ui';
+  
   import type { CatalogTrack } from '@nuit-one/shared';
+import { GlassCard } from '@nuit-one/ui';
   import GenreChips from '$lib/components/discover/GenreChips.svelte';
   import HeroCarousel from '$lib/components/discover/HeroCarousel.svelte';
   import SearchInput from '$lib/components/discover/SearchInput.svelte';

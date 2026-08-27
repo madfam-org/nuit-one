@@ -26,9 +26,7 @@ export function parseYtDlpJson(json: Record<string, unknown>): MediaMetadata {
   return {
     title: (json.title as string) ?? (json.fulltitle as string) ?? 'Untitled',
     artist: (json.uploader as string) ?? (json.artist as string) ?? (json.channel as string) ?? null,
-    sourceType: (
-      (json.extractor_key as string) ?? (json.extractor as string) ?? 'unknown'
-    ).toLowerCase(),
+    sourceType: ((json.extractor_key as string) ?? (json.extractor as string) ?? 'unknown').toLowerCase(),
     sourceId: (json.id as string) ?? '',
     thumbnailUrl: (json.thumbnail as string) ?? null,
     durationSeconds: (json.duration as number) ?? null,

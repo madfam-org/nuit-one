@@ -106,10 +106,6 @@ import { onDestroy } from 'svelte';
     border: 1px solid rgba(0, 245, 255, 0.1);
   }
 
-  .hint-icon {
-    font-size: 1rem;
-  }
-
   .hint-text {
     font-size: 0.75rem;
     color: #a0a0b0;

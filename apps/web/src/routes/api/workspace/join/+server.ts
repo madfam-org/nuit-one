@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types';
 export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.userId) throw error(401, 'Unauthorized');
 
-  const body = await request.json() as { token: string };
+  const body = (await request.json()) as { token: string };
   if (!body.token) throw error(400, 'Token is required');
 
   const invitation = await db.query.workspaceInvitations.findFirst({

@@ -8,7 +8,9 @@ export const workspaceMembers = pgTable(
     userId: uuid('user_id').notNull(),
     role: text('role', {
       enum: ['owner', 'admin', 'manager', 'member', 'viewer'],
-    }).notNull().default('member'),
+    })
+      .notNull()
+      .default('member'),
     displayName: text('display_name').notNull(),
     avatarUrl: text('avatar_url'),
     joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow(),

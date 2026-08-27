@@ -1,7 +1,7 @@
 import { schema } from '@nuit-one/db';
 import { error } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
 import { desc, eq } from 'drizzle-orm';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db.js';
 import type { LayoutServerLoad } from './$types';
 

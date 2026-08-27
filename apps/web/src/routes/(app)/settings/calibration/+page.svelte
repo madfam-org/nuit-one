@@ -1,7 +1,7 @@
 <script lang="ts">
   
   import { Button, GlassCard } from '@nuit-one/ui';
-  import { onDestroy } from 'svelte';
+  import { onDestroy, untrack } from 'svelte';
 import { enhance } from '$app/forms';
   import { CalibrationWizard } from '$lib/audio/calibration.js';
   import type { PageData } from './$types';
@@ -11,9 +11,12 @@ import { enhance } from '$app/forms';
   type Step = 'idle' | 'output' | 'input' | 'display' | 'done';
 
   let step = $state<Step>('idle');
-  let outputLatency = $state(data.profile?.outputLatencyMs ?? 0);
-  let inputLatency = $state(data.profile?.inputLatencyMs ?? 0);
-  let displayLatency = $state(data.profile?.displayLatencyMs ?? 0);
+  // Seed editable measurement state from the loaded profile once. These are
+  // mutated by the wizard below, so they are local state, not $derived; the
+  // initial-value capture from `data` is intentional (untrack signals that).
+  let outputLatency = $state(untrack(() => data.profile?.outputLatencyMs ?? 0));
+  let inputLatency = $state(untrack(() => data.profile?.inputLatencyMs ?? 0));
+  let displayLatency = $state(untrack(() => data.profile?.displayLatencyMs ?? 0));
   let measuring = $state(false);
   let error = $state('');
 

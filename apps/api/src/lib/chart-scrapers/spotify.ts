@@ -34,10 +34,7 @@ async function getAccessToken(clientId: string, clientSecret: string): Promise<s
   return data.access_token;
 }
 
-async function fetchPlaylistTracks(
-  accessToken: string,
-  playlistId: string,
-): Promise<SpotifyTrack[]> {
+async function fetchPlaylistTracks(accessToken: string, playlistId: string): Promise<SpotifyTrack[]> {
   const response = await fetch(
     `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50&fields=items(track(id,name,artists,album,duration_ms,popularity))`,
     { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -76,11 +73,7 @@ async function fetchPlaylistTracks(
     });
 }
 
-export async function scrapeSpotifyCharts(
-  db: Database,
-  clientId: string,
-  clientSecret: string,
-): Promise<number> {
+export async function scrapeSpotifyCharts(db: Database, clientId: string, clientSecret: string): Promise<number> {
   const accessToken = await getAccessToken(clientId, clientSecret);
   const today = new Date().toISOString().slice(0, 10);
   let totalInserted = 0;
@@ -89,12 +82,9 @@ export async function scrapeSpotifyCharts(
     const tracks = await fetchPlaylistTracks(accessToken, playlist.id);
 
     // Delete today's entries for this chart (idempotent re-runs)
-    await db.delete(schema.catalogTracks).where(
-      and(
-        eq(schema.catalogTracks.chartName, playlist.name),
-        eq(schema.catalogTracks.chartDate, today),
-      ),
-    );
+    await db
+      .delete(schema.catalogTracks)
+      .where(and(eq(schema.catalogTracks.chartName, playlist.name), eq(schema.catalogTracks.chartDate, today)));
 
     // Insert fresh entries
     if (tracks.length > 0) {

@@ -13,12 +13,14 @@ export const GET: RequestHandler = async ({ locals }) => {
     .from(schema.workspaceMembers)
     .where(eq(schema.workspaceMembers.workspaceId, workspaceId));
 
-  return json(members.map((m) => ({
-    id: m.id,
-    userId: m.userId,
-    role: m.role,
-    displayName: m.displayName,
-    avatarUrl: m.avatarUrl,
-    joinedAt: m.joinedAt?.toISOString() ?? '',
-  })));
+  return json(
+    members.map((m) => ({
+      id: m.id,
+      userId: m.userId,
+      role: m.role,
+      displayName: m.displayName,
+      avatarUrl: m.avatarUrl,
+      joinedAt: m.joinedAt?.toISOString() ?? '',
+    })),
+  );
 };

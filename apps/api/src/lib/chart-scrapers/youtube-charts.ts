@@ -20,12 +20,7 @@ const YOUTUBE_PLAYLISTS = [
 
 async function fetchPlaylistEntries(playlistUrl: string): Promise<YtPlaylistEntry[]> {
   return new Promise((resolve, reject) => {
-    const proc = spawn('yt-dlp', [
-      '--flat-playlist',
-      '--dump-json',
-      '--no-warnings',
-      playlistUrl,
-    ]);
+    const proc = spawn('yt-dlp', ['--flat-playlist', '--dump-json', '--no-warnings', playlistUrl]);
 
     let stdout = '';
     let stderr = '';
@@ -73,12 +68,9 @@ export async function scrapeYouTubeCharts(db: Database): Promise<number> {
     const entries = await fetchPlaylistEntries(playlist.url);
 
     // Delete today's entries for this chart (idempotent re-runs)
-    await db.delete(schema.catalogTracks).where(
-      and(
-        eq(schema.catalogTracks.chartName, playlist.name),
-        eq(schema.catalogTracks.chartDate, today),
-      ),
-    );
+    await db
+      .delete(schema.catalogTracks)
+      .where(and(eq(schema.catalogTracks.chartName, playlist.name), eq(schema.catalogTracks.chartDate, today)));
 
     // Insert fresh entries
     if (entries.length > 0) {

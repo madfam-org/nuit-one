@@ -15,10 +15,7 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
   await db
     .delete(schema.workspaceMembers)
     .where(
-      and(
-        eq(schema.workspaceMembers.workspaceId, workspaceId),
-        eq(schema.workspaceMembers.userId, params.userId),
-      ),
+      and(eq(schema.workspaceMembers.workspaceId, workspaceId), eq(schema.workspaceMembers.userId, params.userId)),
     );
 
   return json({ success: true });

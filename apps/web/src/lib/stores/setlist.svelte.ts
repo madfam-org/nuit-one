@@ -164,7 +164,7 @@ export function getSetlistStore() {
     /** Prefetch all stem audio for offline playback */
     async prefetchStems(
       stemUrlsFetcher: (trackId: string) => Promise<Record<string, string>>,
-      onProgress?: (completed: number, total: number) => void
+      onProgress?: (completed: number, total: number) => void,
     ): Promise<void> {
       let completed = 0;
       const allUrls: string[] = [];

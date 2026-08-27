@@ -8,10 +8,7 @@ export interface ExpireResult {
   freedBytes: number;
 }
 
-export async function expireStaleContent(
-  db: Database,
-  daysThreshold = 90,
-): Promise<ExpireResult> {
+export async function expireStaleContent(db: Database, daysThreshold = 90): Promise<ExpireResult> {
   const cutoff = new Date(Date.now() - daysThreshold * 24 * 60 * 60 * 1000);
 
   // Find content sources not accessed since cutoff
@@ -21,12 +18,7 @@ export async function expireStaleContent(
       r2KeyPrefix: schema.contentSources.r2KeyPrefix,
     })
     .from(schema.contentSources)
-    .where(
-      and(
-        eq(schema.contentSources.status, 'ready'),
-        lt(schema.contentSources.lastAccessedAt, cutoff),
-      ),
-    );
+    .where(and(eq(schema.contentSources.status, 'ready'), lt(schema.contentSources.lastAccessedAt, cutoff)));
 
   let freedBytes = 0;
 
@@ -46,21 +38,13 @@ export async function expireStaleContent(
     }
 
     // Delete stem records
-    await db
-      .delete(schema.stems)
-      .where(eq(schema.stems.contentSourceId, source.id));
+    await db.delete(schema.stems).where(eq(schema.stems.contentSourceId, source.id));
 
     // Mark content source as expired (keep metadata for re-import)
-    await db
-      .update(schema.contentSources)
-      .set({ status: 'expired' })
-      .where(eq(schema.contentSources.id, source.id));
+    await db.update(schema.contentSources).set({ status: 'expired' }).where(eq(schema.contentSources.id, source.id));
 
     // Mark associated tracks as needing re-processing
-    await db
-      .update(schema.tracks)
-      .set({ status: 'needs_parts' })
-      .where(eq(schema.tracks.contentSourceId, source.id));
+    await db.update(schema.tracks).set({ status: 'needs_parts' }).where(eq(schema.tracks.contentSourceId, source.id));
   }
 
   return { expiredCount: stale.length, freedBytes };

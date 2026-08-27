@@ -9,7 +9,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     throw error(403, 'Only owners and admins can invite members');
   }
 
-  const body = await request.json() as { email: string; role?: string };
+  const body = (await request.json()) as { email: string; role?: string };
   if (!body.email) throw error(400, 'Email is required');
 
   const token = crypto.randomUUID();
