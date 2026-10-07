@@ -229,53 +229,57 @@ def refine_pitch(
     n_bins, n_frames = spec.shape
     bin_hz = sr / n_fft
     noise_floor = np.percentile(logmag, 60)
+    bins_all = np.arange(n_bins)
     for note in notes:
         f_nom = 440.0 * 2.0 ** ((note.midi - 69) / 12.0)
         fa = int(math.floor((note.onset + 0.035) * sr / hop))
         fb = int(math.ceil((note.offset - 0.015) * sr / hop))
         fa, fb = max(0, fa), min(n_frames, max(fa + 1, fb))
-        track: list[float] = []
-        for t in range(fa, fb):
-            ests: list[tuple[float, float]] = []
-            for h in range(1, max_harmonic + 1):
-                fh = f_nom * h
-                if fh > 6000.0:
-                    break
-                lo = int(math.floor(fh * 2 ** (-60 / 1200) / bin_hz))
-                hi = int(math.ceil(fh * 2 ** (60 / 1200) / bin_hz))
-                lo, hi = max(1, lo), min(n_bins - 2, hi)
-                if hi <= lo:
-                    continue
-                seg = logmag[lo : hi + 1, t]
-                k = lo + int(np.argmax(seg))
-                if logmag[k, t] < noise_floor + 2.0:
-                    continue
-                if not (logmag[k, t] >= logmag[k - 1, t] and logmag[k, t] >= logmag[k + 1, t]):
-                    continue
-                a, b, c = logmag[k - 1, t], logmag[k, t], logmag[k + 1, t]
-                denom = a - 2 * b + c
-                delta = 0.5 * (a - c) / denom if abs(denom) > 1e-9 else 0.0
-                freq = (k + float(np.clip(delta, -0.5, 0.5))) * bin_hz
-                cents = 1200.0 * math.log2((freq / h) / f_nom)
-                if abs(cents) <= 60.0:
-                    ests.append((cents, float(spec[k, t])))
-            if ests:
-                vals = np.array([e[0] for e in ests])
-                w = np.array([e[1] for e in ests])
+        if fb <= fa:
+            note.flags.add("pitch-unmeasured")
+            continue
+        harmonics = [h for h in range(1, max_harmonic + 1) if f_nom * h <= 6000.0]
+        cents_rows, weight_rows = [], []
+        seg = logmag[:, fa:fb]
+        lin = spec[:, fa:fb]
+        for h in harmonics:
+            fh = f_nom * h
+            lo = max(1, int(math.floor(fh * 2 ** (-60 / 1200) / bin_hz)))
+            hi = min(n_bins - 2, int(math.ceil(fh * 2 ** (60 / 1200) / bin_hz)))
+            if hi <= lo:
+                continue
+            k = lo + np.argmax(seg[lo : hi + 1], axis=0)  # peak bin per frame
+            cols = np.arange(seg.shape[1])
+            a, b, c = seg[k - 1, cols], seg[k, cols], seg[k + 1, cols]
+            denom = a - 2 * b + c
+            delta = np.where(np.abs(denom) > 1e-9, 0.5 * (a - c) / np.where(denom == 0, 1, denom), 0.0)
+            freq = (k + np.clip(delta, -0.5, 0.5)) * bin_hz
+            cents = 1200.0 * np.log2(np.maximum(freq / h, 1e-6) / f_nom)
+            valid = (b >= noise_floor + 2.0) & (b >= a) & (b >= c) & (np.abs(cents) <= 60.0)
+            cents_rows.append(np.where(valid, cents, np.nan))
+            weight_rows.append(np.where(valid, lin[k, cols], 0.0))
+        if not cents_rows:
+            note.flags.add("pitch-unmeasured")
+            continue
+        cm = np.vstack(cents_rows)
+        wm = np.vstack(weight_rows)
+        track = np.full(cm.shape[1], np.nan)
+        for t in range(cm.shape[1]):
+            ok = np.isfinite(cm[:, t]) & (wm[:, t] > 0)
+            if ok.any():
+                vals, w = cm[ok, t], wm[ok, t]
                 order = np.argsort(vals)
                 cw = np.cumsum(w[order])
-                track.append(float(vals[order][np.searchsorted(cw, cw[-1] / 2.0)]))
-            else:
-                track.append(float("nan"))
-        arr = np.array(track, dtype=float)
-        note.pitch_track = [round(x, 1) if np.isfinite(x) else None for x in arr]  # type: ignore[misc]
+                track[t] = vals[order][np.searchsorted(cw, cw[-1] / 2.0)]
+        note.pitch_track = [round(float(x), 1) if np.isfinite(x) else None for x in track]  # type: ignore[misc]
         note.track_hop = hop / sr
-        finite = arr[np.isfinite(arr)]
+        finite = track[np.isfinite(track)]
         if finite.size:
             mid = finite[len(finite) // 5 : max(len(finite) // 5 + 1, len(finite) - len(finite) // 5)]
             note.cents_a440 = float(np.median(mid if mid.size else finite))
         else:
             note.flags.add("pitch-unmeasured")
+    del bins_all
 
 
 def transcribe(

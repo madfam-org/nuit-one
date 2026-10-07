@@ -41,6 +41,7 @@ W_RELEASE = 0.8
 W_CROSS = 0.15
 W_VIDEO = 1.2
 W_LANDING = 0.15  # per finger above the index when a shift lands a single note
+W_SLUR = 1.0  # a slur (hammer-on, pull-off, slide) played on a different string than its source
 
 
 @dataclass
@@ -55,6 +56,7 @@ class FingerNote:
     plucked: bool = True  # False for slides, hammer-ons and pull-offs (no right-hand stroke)
     harmonic_fret: int | None = None  # natural harmonic touched over this fret (12, 7, 5)
     slide: bool = False  # reached by sliding the finger along the string (the hand moves with it)
+    slur_from: int | None = None  # index of the note this one is slurred from (must share its string)
 
 
 @dataclass
@@ -235,6 +237,10 @@ def solve(
                         base += W_CUT * min(1.0, (until - ev.onset) / 0.3)
                 if single and h.last_single is not None and dt < 0.2:
                     base += W_CROSS * max(0, abs(opt[0][0] - h.last_single[0]) - 1)
+                for (c, _f), i in zip(opt, idxs, strict=True):
+                    src = notes[i].slur_from
+                    if src is not None and not any(b[2] == src and bc == c for bc, b in enumerate(h.busy)):
+                        base += W_SLUR
                 if rng is not None:
                     lo, hi, stretch = rng
                     span = max(frets) - min(frets)

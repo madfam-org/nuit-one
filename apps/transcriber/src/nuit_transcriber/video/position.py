@@ -74,15 +74,18 @@ def board_grid(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Image coordinates of a grid over the fingerboard: x uniform in fret number, y across the board."""
     frets = np.linspace(0.0, FRETS_SHOWN, nx)
-    xs = np.array([geometry.fret_distance_mm(f) for f in frets])
-    map_x = np.zeros((ny, nx), dtype=np.float32)
-    map_y = np.zeros((ny, nx), dtype=np.float32)
-    for j, x in enumerate(xs):
-        hw = geometry.neck_half_width_mm(x)
-        for i, y in enumerate(np.linspace(-hw, hw, ny)):
-            px, py = fit.to_image(float(x), float(y))
-            map_x[i, j], map_y[i, j] = px, py
-    return map_x, map_y
+    L = geometry.scale_length_mm
+    xs = L * (1.0 - 2.0 ** (-frets / 12.0))
+    x_joint = geometry.fret_distance_mm(geometry.frets_to_body)
+    hw = (
+        geometry.nut_width_mm + (geometry.width_at_body_joint_mm - geometry.nut_width_mm) * xs / x_joint
+    ) / 2.0
+    ys = np.linspace(-1.0, 1.0, ny)[:, None] * hw[None, :]  # (ny, nx)
+    u = fit.k * xs / (1.0 + fit.c * xs)
+    s = fit.k / (1.0 + fit.c * xs)
+    map_x = fit.nut[0] + fit.axis[0] * u[None, :] + fit.normal[0] * ys * s[None, :]
+    map_y = fit.nut[1] + fit.axis[1] * u[None, :] + fit.normal[1] * ys * s[None, :]
+    return map_x.astype(np.float32), map_y.astype(np.float32)
 
 
 def skin_mask(bgr: np.ndarray) -> np.ndarray:
@@ -198,6 +201,8 @@ def read_positions(
     geometry: InstrumentGeometry,
     sample_fps: float = 10.0,
     use_landmarks: bool = True,
+    t_start: float = 0.0,
+    t_end: float | None = None,
 ) -> PositionTrack:
     import cv2
 
@@ -207,8 +212,12 @@ def read_positions(
     reader = FingertipReader() if use_landmarks else None
     times, frets, confs = [], [], []
     n_cov = n_tip = n_both_agree = 0
-    idx = 0
+    idx = int(t_start * fps)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+    stop = int(t_end * fps) if t_end is not None else None
     while True:
+        if stop is not None and idx >= stop:
+            break
         ok = cap.grab()
         if not ok:
             break

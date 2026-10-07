@@ -403,7 +403,12 @@ class NeckTrack:
 
 
 def track_neck(
-    video_path: str, geometry: InstrumentGeometry, every_s: float = 1.0, max_frames: int | None = None
+    video_path: str,
+    geometry: InstrumentGeometry,
+    every_s: float = 1.0,
+    max_frames: int | None = None,
+    t_start: float = 0.0,
+    t_end: float | None = None,
 ) -> NeckTrack:
     """Fit the neck about once per ``every_s`` across the video, then reconcile the fits.
 
@@ -421,7 +426,9 @@ def track_neck(
     raw: list[tuple[float, NeckFit]] = []
     prev: NeckFit | None = None
     count = 0
-    for idx in range(0, n_frames, step):
+    first = int(t_start * fps)
+    last = min(n_frames, int(t_end * fps)) if t_end is not None else n_frames
+    for idx in range(first, last, step):
         cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
         ok, frame = cap.read()
         if not ok:

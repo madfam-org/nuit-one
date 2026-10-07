@@ -212,7 +212,7 @@
         "voice": { "type": "integer", "minimum": 1, "maximum": 4 },
         "event": { "type": "integer", "minimum": 0 },
         "measure": { "type": "integer", "minimum": 1 },
-        "beat": { "type": "number", "minimum": 0 },
+        "beat": { "type": "number", "minimum": -1, "description": "Continuous beat within the measure; slightly negative when played just before the quantised downbeat." },
         "beatQuantized": { "type": "string", "pattern": "^-?[0-9]+(/[0-9]+)?$" },
         "durationBeats": { "type": "string", "pattern": "^[0-9]+(/[0-9]+)?$" },
         "timingDeviationBeats": { "type": "number" },
