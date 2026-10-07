@@ -52,5 +52,8 @@ pnpm-debug.log*
 apps/web/playwright-report/
 apps/web/test-results/
 
+# Local agent settings
+.claude/settings.local.json
+
 # Playwright MCP browser session
 .playwright-mcp/
