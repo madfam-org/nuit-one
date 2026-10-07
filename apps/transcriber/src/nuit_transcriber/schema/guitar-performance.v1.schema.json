@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nuit.one/schemas/guitar-performance/1",
+  "title": "nuit.guitar-performance/1",
+  "description": "One guitar performance recovered from audio (and video when available): what was played, where on the neck, how, and when.",
+  "type": "object",
+  "required": ["schema", "engine", "source", "instrument", "timing", "notes", "quality"],
+  "properties": {
+    "schema": { "const": "nuit.guitar-performance/1" },
+    "engine": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "models": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["kind", "id", "title"],
+      "properties": {
+        "kind": { "enum": ["youtube", "url", "file", "synthetic"] },
+        "id": { "type": "string" },
+        "url": { "type": ["string", "null"] },
+        "title": { "type": "string" },
+        "uploader": { "type": ["string", "null"] },
+        "durationSec": { "type": ["number", "null"] },
+        "uploadDate": { "type": ["string", "null"] },
+        "license": { "type": ["string", "null"] },
+        "hasVideo": { "type": "boolean" },
+        "videoSize": {
+          "anyOf": [{ "type": "null" }, { "type": "array", "items": { "type": ["integer", "null"] }, "minItems": 2, "maxItems": 2 }]
+        }
+      }
+    },
+    "instrument": {
+      "type": "object",
+      "required": ["family", "variant", "geometry", "tuning"],
+      "properties": {
+        "family": { "const": "guitar" },
+        "variant": { "type": "string" },
+        "twinRef": { "type": ["string", "null"] },
+        "geometry": {
+          "type": "object",
+          "required": ["scaleLengthMm", "fretCount", "fretsToBody", "nutWidthMm", "fretPositionsMm", "strings"],
+          "properties": {
+            "scaleLengthMm": { "type": "number", "exclusiveMinimum": 0 },
+            "fretCount": { "type": "integer", "minimum": 1, "maximum": 36 },
+            "fretsToBody": { "type": "integer", "minimum": 1 },
+            "nutWidthMm": { "type": "number", "exclusiveMinimum": 0 },
+            "widthAtBodyJointMm": { "type": "number", "exclusiveMinimum": 0 },
+            "stringSpreadNutMm": { "type": "number", "exclusiveMinimum": 0 },
+            "stringSpreadSaddleMm": { "type": "number", "exclusiveMinimum": 0 },
+            "fingerboardRadiusMm": { "type": ["number", "null"] },
+            "inlayFrets": { "type": "array", "items": { "type": "integer" } },
+            "fretPositionsMm": { "type": "array", "items": { "type": "number" }, "minItems": 2 },
+            "strings": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["stringNumber", "openMidi"],
+                "properties": {
+                  "stringNumber": { "type": "integer", "minimum": 1 },
+                  "openMidi": { "type": "integer", "minimum": 0, "maximum": 127 },
+                  "nut": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                  "saddle": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+                }
+              }
+            }
+          }
+        },
+        "tuning": {
+          "type": "object",
+          "required": ["name", "openMidi", "referenceHz", "capo"],
+          "properties": {
+            "name": { "type": "string" },
+            "openMidi": { "type": "array", "items": { "type": "integer" }, "minItems": 1 },
+            "referenceHz": { "type": "number", "exclusiveMinimum": 0 },
+            "offsetCents": { "type": "number" },
+            "intonationSpreadCents": { "type": ["number", "null"] },
+            "capo": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "required": ["beats", "downbeats", "beatsPerBar", "beatUnit", "tempoBpm"],
+      "properties": {
+        "source": { "type": "string" },
+        "beats": { "type": "array", "items": { "type": "number" } },
+        "downbeats": { "type": "array", "items": { "type": "number" } },
+        "beatsPerBar": { "type": "integer", "minimum": 1 },
+        "beatUnit": { "type": "integer", "minimum": 1 },
+        "tempoBpm": { "type": "number", "exclusiveMinimum": 0 },
+        "tempoCurve": { "type": "array", "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 } },
+        "firstBarStart": { "type": "number" },
+        "rubatoIndex": { "type": ["number", "null"] }
+      }
+    },
+    "notes": { "type": "array", "items": { "$ref": "#/$defs/note" } },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["time", "kind"],
+        "properties": {
+          "time": { "type": "number" },
+          "kind": { "enum": ["golpe", "tambora", "percussive"] },
+          "strength": { "type": "number" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["start", "end", "fret"],
+        "properties": {
+          "start": { "type": "number" },
+          "end": { "type": "number" },
+          "fret": { "type": "integer", "minimum": 0 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "source": { "enum": ["audio", "video", "fused"] }
+        }
+      }
+    },
+    "chords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["start", "end", "label"],
+        "properties": {
+          "start": { "type": "number" },
+          "end": { "type": "number" },
+          "label": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "dynamics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["time", "mark"],
+        "properties": {
+          "time": { "type": "number" },
+          "mark": { "enum": ["ppp", "pp", "p", "mp", "mf", "f", "ff", "fff"] }
+        }
+      }
+    },
+    "style": { "type": "object" },
+    "video": { "type": ["object", "null"] },
+    "quality": {
+      "type": "object",
+      "required": ["notesTotal", "warnings"],
+      "properties": {
+        "notesTotal": { "type": "integer", "minimum": 0 },
+        "notesFingered": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "technique": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "vibrato",
+            "bend",
+            "slide",
+            "hammer-on",
+            "pull-off",
+            "harmonic",
+            "rasgueado",
+            "strum",
+            "tambora",
+            "staccato",
+            "accent",
+            "let-ring"
+          ]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "rateHz": { "type": "number" },
+        "extentCents": { "type": "number" },
+        "fromNote": { "type": "integer" },
+        "direction": { "enum": ["up", "down"] },
+        "harmonicFret": { "type": "integer" }
+      }
+    },
+    "note": {
+      "type": "object",
+      "required": ["id", "onset", "offset", "midi", "velocity", "confidence"],
+      "properties": {
+        "id": { "type": "integer", "minimum": 0 },
+        "onset": { "type": "number" },
+        "offset": { "type": "number" },
+        "midi": { "type": "integer", "minimum": 0, "maximum": 127 },
+        "cents": { "type": "number" },
+        "velocity": { "type": "integer", "minimum": 1, "maximum": 127 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "string": { "type": ["integer", "null"], "minimum": 1 },
+        "fret": { "type": ["integer", "null"], "minimum": 0 },
+        "lhFinger": { "type": ["integer", "null"], "minimum": 0, "maximum": 4 },
+        "rhFinger": { "enum": ["p", "i", "m", "a", "c", null] },
+        "voice": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "event": { "type": "integer", "minimum": 0 },
+        "measure": { "type": "integer", "minimum": 1 },
+        "beat": { "type": "number", "minimum": 0 },
+        "beatQuantized": { "type": "string", "pattern": "^-?[0-9]+(/[0-9]+)?$" },
+        "durationBeats": { "type": "string", "pattern": "^[0-9]+(/[0-9]+)?$" },
+        "timingDeviationBeats": { "type": "number" },
+        "barre": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["fret", "fromString", "toString"],
+              "properties": {
+                "fret": { "type": "integer", "minimum": 1 },
+                "fromString": { "type": "integer", "minimum": 1 },
+                "toString": { "type": "integer", "minimum": 1 }
+              }
+            }
+          ]
+        },
+        "techniques": { "type": "array", "items": { "$ref": "#/$defs/technique" } },
+        "dynamic": { "enum": ["ppp", "pp", "p", "mp", "mf", "f", "ff", "fff", null] },
+        "articulation": { "enum": ["legato", "staccato", "accent", null] },
+        "timbre": { "enum": ["ordinario", "ponticello", "tasto", null] },
+        "flags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
