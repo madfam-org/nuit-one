@@ -6,7 +6,9 @@ import jsonschema
 from nuit_transcriber.export.document import load_schema
 from nuit_transcriber.synthetic import performance_doc, render_audio
 
-WEB_FIXTURE = Path(__file__).resolve().parents[2] / "web" / "src" / "lib" / "data" / "guitar-demo-performance.json"
+WEB_FIXTURE = (
+    Path(__file__).resolve().parents[2] / "web" / "src" / "lib" / "data" / "guitar-demo-performance.json"
+)
 
 
 def test_synthetic_document_is_valid():

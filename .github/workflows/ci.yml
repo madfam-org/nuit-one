@@ -35,7 +35,6 @@ jobs:
     name: Transcriber (ruff + fast tests)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # The fast suite needs only numpy: no torch, model weights or media are installed here.
     defaults:
       run:
         working-directory: apps/transcriber
@@ -50,7 +49,12 @@ jobs:
       - name: Fast tests
         env:
           PYTHONPATH: src
-        run: uv run --python 3.11 --isolated --no-project --with 'pytest>=8.3' --with 'numpy>=1.26,<2' pytest -q
+        # numpy for the engine maths, jsonschema for the document contract, music21 for the
+        # MusicXML round trip; still no torch, model weights or media.
+        run: >-
+          uv run --python 3.11 --isolated --no-project
+          --with 'pytest>=8.3' --with 'numpy>=1.26,<2' --with 'jsonschema>=4.21' --with 'music21>=10.5.0'
+          pytest -q
 
   quality-gates:
     runs-on: ubuntu-latest
