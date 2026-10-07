@@ -148,12 +148,21 @@ instrument.
 
 ## Candidate upgrades (sweep of 2026-10)
 
-| Candidate | Why | Status |
+The sweep screened open components for commercial use, covering both code and weights.
+
+| Candidate | What it adds | Published licence |
 |---|---|---|
-| GAPS classical-guitar CRNN (ISMIR 2024) | Onset F ≈ 94 on nylon classical guitar vs. Basic Pitch's general-purpose model | not adopted: trained on CC BY-NC-SA data, commercial use unclear |
-| tuttut (MIT) | Reference HMM/Viterbi tablature implementation | reference for the fingering solver |
-| CC-BY technique datasets (AG-PT-set, EG-IPT, Guitar-TECHS, GOAT) | Train our own technique classifiers | later |
-| Demucs `htdemucs_6s` guitar stem | Guitar isolation in band recordings | for mixes only; solo recordings skip separation |
+| alphaTab | TAB and notation from Guitar Pro, MusicXML or alphaTex, with fingering, techniques, playback, a karaoke cursor and per-note hit/miss colouring | MPL-2.0 |
+| Signalsmith Stretch | Slow-down, loop and transpose practice, compiled into the C++→WASM engine | MIT |
+| pitchy and our own spectral-flux onsets in the worklet | Low-latency live feedback that checks the *expected* notes (target-conditioned scoring) | 0BSD/MIT |
+| all-in-one, lv-chordia | Song sections, beats, downbeats; chords | MIT |
+| Matchmaker (pymatchmaker) | Live score following: where the player is | Apache-2.0 |
+| MediaPipe Tasks Vision | In-browser fretting-hand coaching from the webcam | Apache-2.0 |
+| SpessaSynth with MuseScore_General / FreePats nylon | Better playback of transcriptions | Apache-2.0; MIT / CC0 |
+| Magenta RT 2, ACE-Step 1.5 | Player-following accompaniment prototype; offline backing tracks | Apache-2.0 + CC-BY-4.0; MIT |
+| tuttut | Reference HMM/Viterbi tablature implementation | MIT |
+| GAPS classical-guitar CRNN (ISMIR 2024) | Onset F ≈ 94 on nylon classical guitar | not adopted: training data is CC BY-NC-SA |
+| CC BY 4.0 guitar data (GuitarSet, Guitar-TECHS, EGDB-PG, EGFxSet, Slakh2100, AG-PT-set, EG-IPT) | Training our own transcription and technique models | CC BY 4.0 |
 
 ## Next steps
 
