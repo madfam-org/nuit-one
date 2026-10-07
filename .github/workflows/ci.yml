@@ -31,6 +31,26 @@ jobs:
       - name: Run NetworkPolicy port lint
         run: python3 scripts/check-networkpolicy-ports.py infra/k8s/
 
+  transcriber:
+    name: Transcriber (ruff + fast tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The fast suite needs only numpy: no torch, model weights or media are installed here.
+    defaults:
+      run:
+        working-directory: apps/transcriber
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v10
+      - name: Lint
+        run: |
+          uvx ruff@0.16.10 check src tests
+          uvx ruff@0.16.10 format --check src tests
+      - name: Fast tests
+        env:
+          PYTHONPATH: src
+        run: uv run --python 3.11 --isolated --no-project --with 'pytest>=8.3' --with 'numpy>=1.26,<2' pytest -q
+
   quality-gates:
     runs-on: ubuntu-latest
     steps:
