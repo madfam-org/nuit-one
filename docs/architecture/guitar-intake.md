@@ -164,10 +164,49 @@ The sweep screened open components for commercial use, covering both code and we
 | GAPS classical-guitar CRNN (ISMIR 2024) | Onset F ≈ 94 on nylon classical guitar | not adopted: training data is CC BY-NC-SA |
 | CC BY 4.0 guitar data (GuitarSet, Guitar-TECHS, EGDB-PG, EGFxSet, Slakh2100, AG-PT-set, EG-IPT) | Training our own transcription and technique models | CC BY 4.0 |
 
+## Status (2026-10-07)
+
+**Built:** the full engine (`nuit-transcribe` CLI), the shared contract and
+geometry, the API endpoints and the web karaoke view.
+
+- **Engine.** Acquisition, notes and exact pitch, tuning reference, beats,
+  the video reader (fret-ladder neck fit and hand position), the fingering
+  solver (string/fret, left hand with barré, p-i-m-a), techniques and style,
+  and exporters (JSON, MusicXML with TAB, MIDI, chart).
+- **API.** `GET /api/guitar/:trackId` and `POST /api/guitar/intake`.
+- **Web.** The guitar karaoke view, with a demo of an original synthetic étude.
+
+**Measured:**
+- **Synthetic étude (known answers):** 95 % of notes on the right
+  string/fret; 86 % left-hand and 93 % right-hand fingers. The misses are an
+  equally valid alternative position for one melody bar.
+- **First real case (720p stage video):**
+  - the fitted fret ladder lands on the nut, the wires and the 12th-fret body
+    joint;
+  - the fretting hand is read on most sampled frames;
+  - predicted positions agree with the visible hand on the frames checked;
+  - the reference pitch comes out at A4 ≈ 441.8 Hz.
+- **Not measured:** no reference score exists for that performance, so note
+  accuracy on it is unknown.
+
+**Known limits:**
+- Rubato-heavy repertoire confuses the meter (a tango read as 3/4).
+- Technique labels come from signal processing with modest confidence.
+- Right-hand fingering follows classical defaults, not observation.
+
+**Deployment:** the engine is not part of the API image yet. The production
+API pod is sized for request handling, not for this workload. Until a worker
+deployment exists, `POST /api/guitar/intake` answers 503 there. The engine
+runs wherever `NUIT_TRANSCRIBER_BIN` points at an installed `nuit-transcribe`.
+
 ## Next steps
 
-1. Fingering solver and video reader, evaluated on the first case by overlaying
-   the predicted positions on frames.
-2. Technique detectors and the JSON/MusicXML/MIDI exporters.
-3. API job and karaoke view (`FretboardHighway`) driven by the twin geometry.
-4. `guitar-neck` cartridge proposal in the commons.
+1. A worker deployment for heavy jobs: guitar intake, separation,
+   transcription.
+2. alphaTab for the TAB/notation view with hit/miss colouring, fed by the
+   MusicXML export.
+3. Meter detection that copes with rubato and additive rhythms (3-3-2).
+4. Learned technique detectors trained on CC-BY data, then labelled nylon
+   recordings.
+5. The `guitar-neck` cartridge in the hyperobjects commons, so the twin is a
+   published hyperobject rather than a preset.
