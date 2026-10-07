@@ -85,7 +85,7 @@ def _arpeggio(
 
 def score() -> list[SNote]:
     am = [(5, 0, 0), (3, 2, 2), (2, 1, 1), (1, 0, 0)]
-    dm = [(4, 0, 0), (3, 2, 1), (2, 3, 3), (1, 1, 2)]
+    dm = [(4, 0, 0), (3, 2, 2), (2, 3, 3), (1, 1, 1)]  # the standard Dm shape: fingers 2-3-1
     pattern = [0, 1, 2, 3, 2, 1, 2, 1]
     rh = ["p", "i", "m", "a", "m", "i", "m", "i"]
     notes = _arpeggio(1, am, pattern, rh) + _arpeggio(2, am, pattern, rh) + _arpeggio(3, dm, pattern, rh)
@@ -174,20 +174,11 @@ def score() -> list[SNote]:
                 techniques=[{"kind": "rasgueado", "direction": "down", "confidence": 1.0}],
             )
         )
-    # measure 7: final A minor chord
+    # measure 7: final A minor chord — the thumb brushes strings 5-4, i-m-a take the trebles
+    rh_final = {5: "p", 4: "p", 3: "i", 2: "m", 1: "a"}
     for s, f, lh in [(5, 0, 0), (4, 2, 2), (3, 2, 3), (2, 1, 1), (1, 0, 0)]:
         notes.append(
-            SNote(
-                7,
-                Fraction(0),
-                Fraction(4),
-                s,
-                f,
-                lh,
-                "p" if s >= 4 else "i",
-                voice=2 if s >= 4 else 1,
-                dynamic="mp",
-            )
+            SNote(7, Fraction(0), Fraction(4), s, f, lh, rh_final[s], voice=2 if s >= 4 else 1, dynamic="mp")
         )
     notes.sort(key=lambda n: (n.onset, -n.string))
     return notes
