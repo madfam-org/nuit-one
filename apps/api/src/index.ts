@@ -6,6 +6,7 @@ import { jwtAuth } from './middleware/auth.js';
 import { dbMiddleware } from './middleware/db.js';
 import { adminRoutes } from './routes/admin.js';
 import { analysisRoutes } from './routes/analysis.js';
+import { guitarRoutes } from './routes/guitar.js';
 import { healthRoutes } from './routes/health.js';
 import { importRoutes } from './routes/import.js';
 import { performanceRoutes } from './routes/performances.js';
@@ -33,6 +34,7 @@ app.route('/api/stems', stemRoutes);
 app.route('/api/import', importRoutes);
 app.route('/api/performances', performanceRoutes);
 app.route('/api/analysis', analysisRoutes);
+app.route('/api/guitar', guitarRoutes);
 app.route('/api/admin', adminRoutes);
 
 const port = parseInt(process.env.API_PORT ?? '3001', 10);

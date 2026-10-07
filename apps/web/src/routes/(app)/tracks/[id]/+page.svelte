@@ -47,6 +47,9 @@ import AudioPlayer from '$lib/components/AudioPlayer.svelte';
       <a href="/tracks/{data.track.id}/stats">
         <Button variant="ghost">Stats</Button>
       </a>
+      <a href="/practice/guitar/{data.track.id}">
+        <Button variant="ghost">Guitar karaoke</Button>
+      </a>
       {#if hasNotes}
         <a href="/perform/{data.track.id}">
           <Button variant="primary">Play Mode</Button>

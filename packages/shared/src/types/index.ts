@@ -26,6 +26,23 @@ export type {
   PerformanceResult,
   SavePerformanceRequest,
 } from './game.js';
+export type {
+  Barre,
+  DynamicMark,
+  GuitarGeometryDoc,
+  GuitarHandPosition,
+  GuitarInstrumentDoc,
+  GuitarNote,
+  GuitarPercussiveEvent,
+  GuitarPerformance,
+  GuitarStringGeometry,
+  GuitarTechnique,
+  GuitarTechniqueKind,
+  GuitarTiming,
+  GuitarTuningDoc,
+  RightHandFinger,
+} from './guitar.js';
+export { GUITAR_PERFORMANCE_SCHEMA } from './guitar.js';
 export type { LeaderboardEntry } from './leaderboard.js';
 export type {
   MidiEvent,

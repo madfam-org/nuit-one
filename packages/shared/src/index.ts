@@ -1,5 +1,4 @@
 export type { PlayableInstrument } from './constants.js';
-
 export {
   DEFAULT_BUFFER_SIZE,
   DEFAULT_SAMPLE_RATE,
@@ -21,11 +20,25 @@ export {
   SUPPORTED_MIME_TYPES,
   TRACK_STATUSES,
 } from './constants.js';
+export type { GuitarTwinParameters } from './guitar/geometry.js';
+export {
+  FINGERBOARD_RADII_MM,
+  fretDistanceMm,
+  fretFromDistanceMm,
+  GUITAR_TUNINGS,
+  GUITAR_TWIN_PRESETS,
+  instrumentFromTwin,
+  neckHalfWidthMm,
+  stringSpreadAtNutMm,
+  stringYMm,
+  twinParametersFromManifest,
+} from './guitar/geometry.js';
 export type {
   AudioDeviceInfo,
   AudioEngineState,
   AudioFormat,
   AudioProcessingConfig,
+  Barre,
   BufferSize,
   CalibrationProfile,
   CalibrationState,
@@ -34,6 +47,18 @@ export type {
   CatalogTrack,
   ChordEvent,
   DifficultyTier,
+  DynamicMark,
+  GuitarGeometryDoc,
+  GuitarHandPosition,
+  GuitarInstrumentDoc,
+  GuitarNote,
+  GuitarPercussiveEvent,
+  GuitarPerformance,
+  GuitarStringGeometry,
+  GuitarTechnique,
+  GuitarTechniqueKind,
+  GuitarTiming,
+  GuitarTuningDoc,
   HitJudgment,
   HitResult,
   LeaderboardEntry,
@@ -46,6 +71,7 @@ export type {
   PerformanceResult,
   PerformanceScore,
   Project,
+  RightHandFinger,
   SampleRate,
   SavePerformanceRequest,
   Stem,
@@ -58,3 +84,4 @@ export type {
   WorkspaceMember,
   WorkspaceRole,
 } from './types/index.js';
+export { GUITAR_PERFORMANCE_SCHEMA } from './types/index.js';

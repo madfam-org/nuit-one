@@ -71,8 +71,9 @@ export async function extractMedia(url: string): Promise<MediaResult> {
 
   await new Promise<void>((resolve, reject) => {
     const proc = spawn('yt-dlp', [
+      // A session that only gets the muxed stream (no separate audio formats) must still succeed.
       '-f',
-      'bestaudio',
+      'bestaudio/best',
       '-x',
       '--audio-format',
       'wav',

@@ -44,12 +44,22 @@ libraries respectively). Which framing is the product's primary identity is
 an **open product decision** as of 2026-07-04 — treat neither document alone
 as authoritative until it is resolved.
 
-### Known debt
+### Guitar intake (2026-10)
 
-- **CI is red on `main`:** every `ci.yml` run on `main` since at least
-  2026-05-04 has failed; lint is `biome check .` repo-wide and the Biome
-  debt has not been paid down (status as of 2026-07-04). Fixing lint/CI is
-  a prerequisite for trustworthy green-build claims.
+`apps/transcriber` is a Python engine that takes a guitar performance video
+(YouTube, any yt-dlp site, or an upload) and returns notes with exact pitch,
+string/fret, left- and right-hand fingering, techniques and a tempo map. When
+the video shows the neck, it reads the hand's position by fitting the guitar
+twin's fret ladder to the frame. Outputs: a `nuit.guitar-performance/1`
+document, MusicXML with a TAB staff, MIDI and a NoteHighway chart. The web
+app's guitar karaoke view draws the fretboard from the same twin geometry.
+Design: [docs/architecture/guitar-intake.md](./docs/architecture/guitar-intake.md).
+
+### CI
+
+CI (`ci.yml`) has been green on `main` since 2026-08-27. Lint is
+`biome check .`, and warnings remain to pay down. An earlier version of this
+README reported CI as red; that status dates from 2026-07-04.
 
 ## Development
 
