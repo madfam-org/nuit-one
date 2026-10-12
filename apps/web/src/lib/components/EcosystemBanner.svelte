@@ -1,29 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { ecosystemLink } from '$lib/ecosystem-links.js';
+  import { ECOSYSTEM_PLATFORMS, MADFAM_OWNED_DOMAINS } from '$lib/ecosystem-platforms.js';
 
   const STORAGE_KEY = 'madfam_ecosystem_banner';
   const BANNER_VERSION = 4;
   const DISMISS_DAYS = 30;
   const SECONDS_PER_PLATFORM = 6;
 
-  const platforms = [
-    { keyword: 'BUDGETING & WEALTH', name: 'Dhanam', url: 'https://dhan.am' },
-    { keyword: 'AI AGENT OFFICE', name: 'Selva', url: 'https://selva.town' },
-    { keyword: 'COMPLIANCE & CFDI', name: 'Karafiel', url: 'https://karafiel.mx' },
-    { keyword: 'AUTHENTICATION', name: 'Janua', url: 'https://auth.madfam.io' },
-    { keyword: 'DEPLOYMENT', name: 'Enclii', url: 'https://enclii.dev' },
-    { keyword: 'LEGAL OPS', name: 'Tezca', url: 'https://tezca.mx' },
-    { keyword: 'PHYGITAL FABRICATION', name: 'Yantra4D', url: 'https://yantra4d.com' },
-    { keyword: 'QUOTING ENGINE', name: 'Cotiza', url: 'https://cotiza.studio' },
-    { keyword: 'INDUSTRY INTELLIGENCE', name: 'Forge Sight', url: 'https://forgesight.quest' },
-    { keyword: 'MANUFACTURING', name: 'Pravara', url: 'https://mes.madfam.io' },
-    { keyword: 'GAMES', name: 'Rondelio', url: 'https://rondel.io' },
-    { keyword: 'ROUTING & LOGISTICS', name: 'RouteCraft', url: 'https://routecraft.app' },
-    { keyword: 'CLIENT PORTAL & CRM', name: 'PhyndCRM', url: 'https://phynd.app' },
-  ] as const;
+  const platforms = ECOSYSTEM_PLATFORMS;
 
   let visible = $state(false);
-  const track = [...platforms, ...platforms];
+  // Set after mount: the server render has no page host, so links stay untagged
+  // until the browser can name the origin (`utm_source=<host>`, see ecosystem-links.ts).
+  let originHost = $state<string | undefined>(undefined);
+  const track = $derived(
+    [...platforms, ...platforms].map((platform) => ({
+      ...platform,
+      ...ecosystemLink(platform.url, { surface: 'banner', originHost, ownedDomains: MADFAM_OWNED_DOMAINS }),
+    })),
+  );
   const durationSec = Math.max(30, platforms.length * SECONDS_PER_PLATFORM);
 
   function isDismissed(): boolean {
@@ -51,6 +47,7 @@
   }
 
   onMount(() => {
+    originHost = window.location.hostname;
     visible = !isDismissed();
   });
 </script>
@@ -70,9 +67,9 @@
         <div class="madfam-eco-banner__track">
           {#each track as platform, index (platform.name + index)}
             <a
-              href={platform.url}
+              href={platform.href}
               target="_blank"
-              rel="noopener noreferrer"
+              rel={platform.rel}
               class="madfam-eco-banner__item"
               aria-hidden={index >= platforms.length ? true : undefined}
               tabindex={index >= platforms.length ? -1 : undefined}
