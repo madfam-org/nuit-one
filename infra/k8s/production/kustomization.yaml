@@ -9,9 +9,9 @@ resources:
 - web-service.yaml
 - network-policies.yaml
 images:
-- digest: sha256:a64e2f524f6df812a2f717df81927837c97698d720eb8b01b482fc714ac4a90f
+- digest: sha256:2b3506be53d61781352576a5cfea788efe2bab4d4c6a204ab52deee63c3116f4
   name: ghcr.io/madfam-org/nuit-one/api
   newName: ghcr.io/madfam-org/nuit-one/api
-- digest: sha256:a9345b8311022e97d2b2400d702da3b5603e5197180817daa8c4bc2e2a07fd69
+- digest: sha256:93b9e9226090646c0cab9302fe6714e9f10494d4b56a309319a0a165458846d2
   name: ghcr.io/madfam-org/nuit-one/web
   newName: ghcr.io/madfam-org/nuit-one/web
