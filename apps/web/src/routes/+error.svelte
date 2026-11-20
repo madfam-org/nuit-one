@@ -12,6 +12,8 @@
         Unauthorized
       {:else if $page.status === 500}
         Server Error
+      {:else if $page.status === 503}
+        Temporarily Unavailable
       {:else}
         Something Went Wrong
       {/if}
