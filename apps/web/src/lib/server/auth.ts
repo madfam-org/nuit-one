@@ -23,6 +23,18 @@ function redirectUri(): string {
   return env.JANUA_REDIRECT_URI ?? 'http://localhost:5173/auth/callback';
 }
 
+/**
+ * Settings the production OAuth flow cannot run without. The helpers above
+ * fall back to localhost for local development; in production those
+ * fallbacks would send people to a dead address, and a missing client id or
+ * secret throws. Returns the names (never the values) of the ones unset.
+ */
+export const REQUIRED_AUTH_ENV = ['JANUA_URL', 'JANUA_CLIENT_ID', 'JANUA_CLIENT_SECRET', 'JANUA_REDIRECT_URI'] as const;
+
+export function missingAuthConfig(): string[] {
+  return REQUIRED_AUTH_ENV.filter((name) => !env[name]);
+}
+
 // --- JWKS cache with TTL ---
 
 let cachedJwks: jose.JSONWebKeySet | null = null;
